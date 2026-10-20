@@ -47,9 +47,15 @@ function leerFiltro<T extends string>(
 export async function listar(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const filtros = {
-      plataforma: leerFiltro(req.query.plataforma, plataformas, "plataforma"),
-      genero: leerFiltro(req.query.genero, generos, "genero"),
-      estado: leerFiltro(req.query.estado, estados, "estado"),
+      ...(req.query.plataforma === undefined
+        ? {}
+        : { plataforma: leerFiltro(req.query.plataforma, plataformas, "plataforma") }),
+      ...(req.query.genero === undefined
+        ? {}
+        : { genero: leerFiltro(req.query.genero, generos, "genero") }),
+      ...(req.query.estado === undefined
+        ? {}
+        : { estado: leerFiltro(req.query.estado, estados, "estado") }),
     };
     const videojuegos = await videojuegoService.listarVideojuegos(filtros);
     res.json({ total: videojuegos.length, videojuegos });
