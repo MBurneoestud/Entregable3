@@ -53,6 +53,25 @@ export async function actualizarVideojuego(
   return actualizada;
 }
 
+export async function actualizarEstadoLogro(
+  id: string,
+  indiceLogro: number,
+  obtenido: boolean
+): Promise<IVideojuego> {
+  const videojuego = await Videojuego.findById(id);
+  if (!videojuego) {
+    throw new ApiError(404, `No existe un videojuego con id ${id}`);
+  }
+
+  const logro = videojuego.logros[indiceLogro];
+  if (!logro) {
+    throw new ApiError(404, `No existe un logro con índice ${indiceLogro}`);
+  }
+
+  logro.obtenido = obtenido;
+  return videojuego.save();
+}
+
 export async function eliminarVideojuego(id: string): Promise<void> {
   const resultado = await Videojuego.findByIdAndDelete(id);
   if (!resultado) {

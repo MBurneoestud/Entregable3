@@ -99,6 +99,32 @@ export async function actualizar(
   }
 }
 
+export async function actualizarEstadoLogro(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const indiceLogro = Number(req.params.indiceLogro);
+    if (!Number.isInteger(indiceLogro) || indiceLogro < 0) {
+      throw new ApiError(400, "El índice del logro debe ser un entero no negativo");
+    }
+
+    if (!req.body || typeof req.body.obtenido !== "boolean") {
+      throw new ApiError(400, "El campo obtenido debe ser booleano");
+    }
+
+    const videojuego = await videojuegoService.actualizarEstadoLogro(
+      req.params.id,
+      indiceLogro,
+      req.body.obtenido
+    );
+    res.json({ videojuego });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function eliminar(
   req: Request,
   res: Response,

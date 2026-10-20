@@ -9,4 +9,5 @@ videojuegoRouter.get("/:id/partidas", videojuegoController.listarPartidasDeVideo
 videojuegoRouter.get("/:id/resumen", videojuegoController.obtenerResumen);
 videojuegoRouter.get("/:id", videojuegoController.obtenerPorId);
 videojuegoRouter.put("/:id", videojuegoController.actualizar);
+videojuegoRouter.patch("/:id/logros/:indiceLogro", videojuegoController.actualizarEstadoLogro);
 videojuegoRouter.delete("/:id", videojuegoController.eliminar);
