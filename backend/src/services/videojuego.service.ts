@@ -6,6 +6,7 @@ import {
   Plataforma,
   Videojuego,
 } from "../models/videojuego.model";
+import { listarPartidasDeVideojuego } from "./partida.service";
 
 type CamposVideojuego = "nombre" | "plataforma" | "genero" | "estado" | "logros";
 
@@ -57,4 +58,22 @@ export async function eliminarVideojuego(id: string): Promise<void> {
   if (!resultado) {
     throw new ApiError(404, `No existe un videojuego con id ${id}`);
   }
+}
+
+export async function obtenerResumenVideojuego(id: string): Promise<{
+  totalPartidas: number;
+  horasTotales: number;
+  ultimaPartida: Date | null;
+  porcentajeAvanceActual: number | null;
+}> {
+  const partidas = await listarPartidasDeVideojuego(id);
+  const ultimaPartida = partidas[0];
+
+  return {
+    totalPartidas: partidas.length,
+    horasTotales:
+      partidas.reduce((total, partida) => total + partida.duracionMinutos, 0) / 60,
+    ultimaPartida: ultimaPartida?.fecha ?? null,
+    porcentajeAvanceActual: ultimaPartida?.porcentajeAvance ?? null,
+  };
 }

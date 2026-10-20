@@ -124,3 +124,16 @@ export async function listarPartidasDeVideojuego(
     next(error);
   }
 }
+
+export async function obtenerResumen(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const resumen = await videojuegoService.obtenerResumenVideojuego(req.params.id);
+    res.json(resumen);
+  } catch (error) {
+    next(error);
+  }
+}
