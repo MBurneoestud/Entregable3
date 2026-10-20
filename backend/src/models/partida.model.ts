@@ -24,6 +24,7 @@ const PartidaSchema = new Schema<IPartida>(
     duracionMinutos: {
       type: Number,
       required: [true, "La duración de la partida es obligatoria"],
+      min: [0, "La duración de la partida no puede ser menor que 0"],
     },
     porcentajeAvance: {
       type: Number,
