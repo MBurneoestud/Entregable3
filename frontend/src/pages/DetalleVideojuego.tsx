@@ -340,12 +340,21 @@ export function DetalleVideojuego() {
               <h2 className="section-title">Historial de partidas</h2>
               <p className="mt-1 text-sm text-mist">Sesiones registradas para este videojuego.</p>
             </div>
-            <Link
-              to={`/partidas?videojuegoId=${encodeURIComponent(videojuego._id)}`}
-              className="secondary-button shrink-0 !text-xs"
-            >
-              Ver todas las partidas
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to={`/partidas/nueva?videojuegoId=${encodeURIComponent(videojuego._id)}`}
+                className="primary-button shrink-0 !text-xs"
+              >
+                <span aria-hidden="true">＋</span>
+                Registrar partida
+              </Link>
+              <Link
+                to={`/partidas?videojuegoId=${encodeURIComponent(videojuego._id)}`}
+                className="secondary-button shrink-0 !text-xs"
+              >
+                Ver todas las partidas
+              </Link>
+            </div>
           </div>
 
           {partidas.length === 0 ? (

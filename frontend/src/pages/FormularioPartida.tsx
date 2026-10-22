@@ -89,7 +89,11 @@ export function FormularioPartida() {
     try {
       setGuardando(true);
       await crearPartida(datosAEnviar);
-      navigate("/partidas");
+      navigate(
+        videojuegoIdInicial
+          ? `/partidas?videojuegoId=${encodeURIComponent(datosAEnviar.videojuego)}`
+          : "/partidas"
+      );
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "No se pudo registrar la partida.");
     } finally {

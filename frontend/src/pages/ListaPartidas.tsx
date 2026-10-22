@@ -96,6 +96,13 @@ export function ListaPartidas() {
               Consulta las sesiones registradas y el tiempo que has dedicado a cada juego.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                to={`/partidas/nueva${videojuegoId ? `?videojuegoId=${encodeURIComponent(videojuegoId)}` : ""}`}
+                className="primary-button"
+              >
+                <span aria-hidden="true">＋</span>
+                Registrar partida
+              </Link>
               <Link to="/" className="secondary-button">
                 Volver a videojuegos
               </Link>
