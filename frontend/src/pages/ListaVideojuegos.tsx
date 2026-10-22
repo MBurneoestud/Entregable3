@@ -66,19 +66,19 @@ export function ListaVideojuegos() {
   return (
     <MarcoPagina>
       <div className="space-y-8">
-        <section className="panel relative isolate overflow-hidden p-7 sm:p-10">
+        <section className="page-hero p-7 sm:p-10">
           <div
             aria-hidden="true"
             className="absolute -right-10 -top-32 -z-10 h-80 w-80 rounded-full border border-signal/10 bg-gradient-to-br from-signal/10 to-earth/10 blur-[1px]"
           />
           <div className="max-w-3xl">
-            <span className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-signal/20 bg-signal/[0.08] text-xl">
+            <span className="icon-tile">
               <span aria-hidden="true">🎮</span>
             </span>
-            <h1 className="text-3xl font-extrabold tracking-[-0.045em] text-white sm:text-5xl">
+            <h1 className="page-title">
               Mi colección de videojuegos
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-mist sm:text-base">
+            <p className="page-description">
               Organiza tu biblioteca y lleva un registro de tu progreso.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -97,7 +97,7 @@ export function ListaVideojuegos() {
           className="panel grid gap-5 p-5 sm:grid-cols-3 sm:px-7"
         >
           <div>
-            <label htmlFor="filtro-plataforma" className="mb-2 block text-xs font-semibold text-mist">
+            <label htmlFor="filtro-plataforma" className="field-label">
               Plataforma
             </label>
             <select
@@ -116,7 +116,7 @@ export function ListaVideojuegos() {
           </div>
 
           <div>
-            <label htmlFor="filtro-genero" className="mb-2 block text-xs font-semibold text-mist">
+            <label htmlFor="filtro-genero" className="field-label">
               Género
             </label>
             <select
@@ -135,7 +135,7 @@ export function ListaVideojuegos() {
           </div>
 
           <div>
-            <label htmlFor="filtro-estado" className="mb-2 block text-xs font-semibold text-mist">
+            <label htmlFor="filtro-estado" className="field-label">
               Estado
             </label>
             <select
@@ -155,14 +155,14 @@ export function ListaVideojuegos() {
         </section>
 
         {cargando && (
-          <div role="status" className="panel flex items-center gap-4 p-8 text-sm text-mist">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal shadow-[0_0_18px_rgba(217,164,65,0.8)]" />
+          <div role="status" className="loading-state">
+            <span className="loading-dot" />
             Cargando videojuegos...
           </div>
         )}
 
         {!cargando && error && (
-          <div role="alert" className="panel border-rose-400/20 p-6 text-sm text-rose-200">
+          <div role="alert" className="error-state">
             No se pudieron cargar los videojuegos: {error}
           </div>
         )}
@@ -206,7 +206,7 @@ export function ListaVideojuegos() {
                         </td>
                         <td className="px-5 py-4">
                           {videojuego.estado ? (
-                            <span className="rounded-full border border-earth/20 bg-earth/[0.08] px-2.5 py-1 text-xs text-earth-light">
+                            <span className="status-badge status-badge-session">
                               {etiquetasEstado[videojuego.estado]}
                             </span>
                           ) : (

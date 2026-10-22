@@ -78,22 +78,22 @@ export function ListaPartidas() {
   return (
     <MarcoPagina>
       <div className="space-y-8">
-        <section className="panel relative isolate overflow-hidden p-7 sm:p-10">
+        <section className="page-hero p-7 sm:p-10">
           <div
             aria-hidden="true"
             className="absolute -right-12 -top-28 -z-10 h-80 w-80 rounded-full bg-gradient-to-br from-earth/15 to-signal/10 blur-2xl"
           />
           <div className="relative max-w-3xl">
-            <span className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-earth/25 bg-earth/[0.09] text-xl">
+            <span className="icon-tile-session">
               <span aria-hidden="true">◷</span>
             </span>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-signal">
+            <p className="eyebrow">
               Diario de juego
             </p>
-            <h1 className="text-3xl font-extrabold tracking-[-0.045em] text-white sm:text-5xl">
+            <h1 className="page-title">
               Historial de partidas
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-mist sm:text-base">
+            <p className="page-description">
               Consulta las sesiones registradas y el tiempo que has dedicado a cada juego.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -114,7 +114,7 @@ export function ListaPartidas() {
         </section>
 
         {error && (
-          <div role="alert" className="panel border-rose-400/20 p-6 text-sm text-rose-200">
+          <div role="alert" className="error-state">
             No se pudieron completar las partidas: {error}
           </div>
         )}
@@ -122,18 +122,18 @@ export function ListaPartidas() {
         {!cargando && !error && partidas.length > 0 && (
           <section aria-label="Resumen de partidas" className="grid gap-4 sm:grid-cols-2">
             <div className="panel p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-mist">
+              <p className="stat-label">
                 Partidas registradas
               </p>
-              <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+              <p className="stat-value">
                 {partidas.length}
               </p>
             </div>
             <div className="panel p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-mist">
+              <p className="stat-label">
                 Tiempo de juego
               </p>
-              <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+              <p className="stat-value">
                 {formatearDuracion(totalMinutos)}
               </p>
             </div>
@@ -141,15 +141,15 @@ export function ListaPartidas() {
         )}
 
         {cargando && (
-          <div role="status" className="panel flex items-center gap-4 p-8 text-sm text-mist">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal shadow-[0_0_18px_rgba(217,164,65,0.8)]" />
+          <div role="status" className="loading-state">
+            <span className="loading-dot" />
             Cargando partidas...
           </div>
         )}
 
         {!cargando && !error && partidas.length === 0 && (
           <div className="panel p-8 text-center">
-            <p className="text-sm text-mist">
+            <p className="empty-state">
               {videojuegoId
                 ? "Todavía no hay partidas registradas para este videojuego."
                 : "Todavía no hay partidas registradas."}
@@ -208,7 +208,7 @@ export function ListaPartidas() {
                           type="button"
                           onClick={() => manejarEliminar(partida)}
                           disabled={eliminandoId !== null}
-                          className="inline-flex items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/[0.05] px-3 py-1.5 text-xs font-semibold text-rose-200 transition hover:border-rose-400/50 hover:bg-rose-400/[0.12] disabled:cursor-wait disabled:opacity-50"
+                          className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
                         >
                           {eliminandoId === partida._id ? "Eliminando..." : "Eliminar"}
                         </button>

@@ -120,8 +120,8 @@ export function DetalleVideojuego() {
   if (cargando) {
     return (
       <MarcoPagina>
-        <div role="status" className="panel flex items-center gap-4 p-8 text-sm text-mist">
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal shadow-[0_0_18px_rgba(217,164,65,0.8)]" />
+        <div role="status" className="loading-state">
+          <span className="loading-dot" />
           Cargando videojuego...
         </div>
       </MarcoPagina>
@@ -134,12 +134,12 @@ export function DetalleVideojuego() {
         <div className="space-y-5">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-stone-400 transition hover:text-signal"
+            className="back-link"
           >
             <span aria-hidden="true">←</span>
             Volver a videojuegos
           </Link>
-          <div role="alert" className="panel border-rose-400/20 p-6 text-sm text-rose-200">
+          <div role="alert" className="error-state">
             No se pudo cargar el videojuego: {error}
           </div>
         </div>
@@ -162,47 +162,47 @@ export function DetalleVideojuego() {
       <div className="space-y-8">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-stone-400 transition hover:text-signal"
+          className="back-link"
         >
           <span aria-hidden="true">←</span>
           Volver a videojuegos
         </Link>
 
         {error && (
-          <div role="alert" className="panel border-rose-400/20 p-5 text-sm text-rose-200">
+          <div role="alert" className="error-state !p-5">
             {error}
           </div>
         )}
 
-        <section className="panel relative isolate overflow-hidden p-7 sm:p-10">
+        <section className="page-hero p-7 sm:p-10">
           <div
             aria-hidden="true"
             className="absolute -right-16 -top-24 -z-10 h-80 w-80 rounded-full bg-gradient-to-br from-signal/10 to-earth/15 blur-2xl"
           />
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <div>
-              <span className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-signal/20 bg-signal/[0.08] text-xl">
+              <span className="icon-tile">
                 <span aria-hidden="true">🎮</span>
               </span>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-signal">
+              <p className="eyebrow">
                 Detalle del videojuego
               </p>
-              <h1 className="text-4xl font-extrabold tracking-[-0.045em] text-white sm:text-5xl">
+              <h1 className="page-title">
                 {videojuego.nombre}
               </h1>
               <div className="mt-5 flex flex-wrap gap-2">
                 {videojuego.genero && (
-                  <span className="rounded-full border border-earth/25 bg-earth/[0.09] px-3 py-1.5 text-xs font-semibold text-earth-light">
+                  <span className="status-badge status-badge-session">
                     {etiquetasGenero[videojuego.genero]}
                   </span>
                 )}
                 {videojuego.estado && (
-                  <span className="rounded-full border border-signal/20 bg-signal/[0.06] px-3 py-1.5 text-xs font-semibold text-signal">
+                  <span className="status-badge status-badge-progress">
                     {etiquetasEstado[videojuego.estado]}
                   </span>
                 )}
                 {videojuego.plataforma && (
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-stone-300">
+                  <span className="status-badge status-badge-neutral">
                     {videojuego.plataforma === "Movil" ? "Móvil" : videojuego.plataforma}
                   </span>
                 )}
@@ -216,7 +216,7 @@ export function DetalleVideojuego() {
                 type="button"
                 onClick={manejarEliminar}
                 disabled={eliminando}
-                className="inline-flex items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/[0.06] px-4 py-2.5 text-sm font-semibold text-rose-200 transition hover:border-rose-400/50 hover:bg-rose-400/[0.12] disabled:cursor-wait disabled:opacity-60"
+                className="danger-button"
               >
                 {eliminando ? "Eliminando..." : "Eliminar"}
               </button>
@@ -226,26 +226,26 @@ export function DetalleVideojuego() {
 
         <section aria-label="Resumen de actividad" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="panel p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-mist">Partidas</p>
-            <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+            <p className="stat-label">Partidas</p>
+            <p className="stat-value">
               {resumen?.totalPartidas ?? partidas.length}
             </p>
           </div>
           <div className="panel p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-mist">Horas jugadas</p>
-            <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+            <p className="stat-label">Horas jugadas</p>
+            <p className="stat-value">
               {(resumen?.horasTotales ?? 0).toLocaleString("es", { maximumFractionDigits: 1 })}
               <span className="ml-2 text-sm font-medium text-mist">h</span>
             </p>
           </div>
           <div className="panel p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-mist">Avance actual</p>
-            <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+            <p className="stat-label">Avance actual</p>
+            <p className="stat-value">
               {resumen?.porcentajeAvanceActual == null ? "—" : `${resumen.porcentajeAvanceActual}%`}
             </p>
           </div>
           <div className="panel p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-mist">Última partida</p>
+            <p className="stat-label">Última partida</p>
             <p className="mt-3 text-lg font-bold text-white">
               {resumen?.ultimaPartida ? formatearFecha(resumen.ultimaPartida) : "Sin partidas"}
             </p>
@@ -254,7 +254,7 @@ export function DetalleVideojuego() {
 
         <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="panel p-6 sm:p-8">
-            <h2 className="text-xl font-bold tracking-tight text-white">Información</h2>
+            <h2 className="section-title">Información</h2>
             <dl className="mt-4 divide-y divide-line">
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Plataforma</dt>
@@ -288,7 +288,7 @@ export function DetalleVideojuego() {
           <div className="panel p-6 sm:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold tracking-tight text-white">Logros</h2>
+                <h2 className="section-title">Logros</h2>
                 <p className="mt-1 text-sm text-mist">
                   {logrosObtenidos} de {videojuego.logros.length} obtenidos
                 </p>
@@ -301,7 +301,7 @@ export function DetalleVideojuego() {
               </Link>
             </div>
             {videojuego.logros.length === 0 ? (
-              <p className="mt-6 rounded-2xl border border-dashed border-line px-5 py-8 text-center text-sm text-mist">
+              <p className="empty-state mt-6">
                 Todavía no hay logros registrados para este videojuego.
               </p>
             ) : (
@@ -314,7 +314,7 @@ export function DetalleVideojuego() {
                       checked={logro.obtenido}
                       disabled={actualizandoLogro !== null}
                       onChange={(evento) => manejarCambioLogro(indice, evento.target.checked)}
-                      className="h-4 w-4 shrink-0 accent-amber-400 disabled:cursor-wait"
+                      className="checkbox-control shrink-0"
                     />
                     <label
                       htmlFor={`logro-${indice}`}
@@ -337,7 +337,7 @@ export function DetalleVideojuego() {
         <section className="panel p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white">Historial de partidas</h2>
+              <h2 className="section-title">Historial de partidas</h2>
               <p className="mt-1 text-sm text-mist">Sesiones registradas para este videojuego.</p>
             </div>
             <Link
@@ -349,14 +349,14 @@ export function DetalleVideojuego() {
           </div>
 
           {partidas.length === 0 ? (
-            <p className="mt-6 rounded-2xl border border-dashed border-line px-5 py-8 text-center text-sm text-mist">
+            <p className="empty-state mt-6">
               Todavía no hay partidas registradas para este videojuego.
             </p>
           ) : (
             <ul className="mt-5 divide-y divide-line">
               {partidas.map((partida) => (
                 <li key={partida._id} className="flex gap-4 py-5">
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-signal shadow-[0_0_12px_rgba(217,164,65,0.7)]" />
+                  <span className="activity-marker" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-semibold text-white">{formatearFecha(partida.fecha)}</p>

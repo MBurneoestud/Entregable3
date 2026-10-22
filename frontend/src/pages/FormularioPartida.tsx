@@ -100,8 +100,8 @@ export function FormularioPartida() {
   if (cargando) {
     return (
       <MarcoPagina>
-        <div role="status" className="panel flex items-center gap-4 p-8 text-sm text-mist">
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal shadow-[0_0_18px_rgba(217,164,65,0.8)]" />
+        <div role="status" className="loading-state">
+          <span className="loading-dot" />
           Cargando formulario...
         </div>
       </MarcoPagina>
@@ -113,21 +113,21 @@ export function FormularioPartida() {
       <div className="mx-auto max-w-3xl">
         <Link
           to="/partidas"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-stone-400 transition hover:text-signal"
+          className="back-link mb-6"
         >
           <span aria-hidden="true">←</span>
           Volver a partidas
         </Link>
 
         <section className="panel overflow-hidden">
-          <div className="border-b border-line bg-gradient-to-r from-signal/[0.08] via-transparent to-earth/[0.08] px-6 py-7 sm:px-9">
-            <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-signal/20 bg-signal/[0.08] text-lg">
+          <div className="form-header">
+            <span className="form-icon-tile">
               <span aria-hidden="true">◷</span>
             </span>
-            <h1 className="text-3xl font-extrabold tracking-[-0.04em] text-white">
+            <h1 className="form-title">
               Registrar partida
             </h1>
-            <p className="mt-2 text-sm leading-6 text-mist">
+            <p className="form-description">
               Añade una sesión a tu historial y actualiza tu progreso en el juego.
             </p>
           </div>
@@ -135,7 +135,7 @@ export function FormularioPartida() {
           {error && (
             <p
               role="alert"
-              className="mx-6 mt-6 rounded-xl border border-rose-400/20 bg-rose-400/[0.06] px-4 py-3 text-sm text-rose-200 sm:mx-9"
+              className="form-error mx-6 mt-6 sm:mx-9"
             >
               {error}
             </p>
@@ -155,7 +155,7 @@ export function FormularioPartida() {
               <div>
                 <label
                   htmlFor="videojuego"
-                  className="mb-2 block text-sm font-semibold text-stone-200"
+                  className="field-label"
                 >
                   Videojuego <span className="text-signal" aria-hidden="true">*</span>
                 </label>
@@ -179,7 +179,7 @@ export function FormularioPartida() {
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="fecha" className="mb-2 block text-sm font-semibold text-stone-200">
+                  <label htmlFor="fecha" className="field-label">
                     Fecha <span className="text-signal" aria-hidden="true">*</span>
                   </label>
                   <input
@@ -198,7 +198,7 @@ export function FormularioPartida() {
                 <div>
                   <label
                     htmlFor="duracionMinutos"
-                    className="mb-2 block text-sm font-semibold text-stone-200"
+                    className="field-label"
                   >
                     Duración (minutos) <span className="text-signal" aria-hidden="true">*</span>
                   </label>
@@ -224,7 +224,7 @@ export function FormularioPartida() {
               <div>
                 <label
                   htmlFor="porcentajeAvance"
-                  className="mb-2 block text-sm font-semibold text-stone-200"
+                  className="field-label"
                 >
                   Avance actual (%)
                 </label>
@@ -248,7 +248,7 @@ export function FormularioPartida() {
               </div>
 
               <div>
-                <label htmlFor="notas" className="mb-2 block text-sm font-semibold text-stone-200">
+                <label htmlFor="notas" className="field-label">
                   Notas
                 </label>
                 <textarea

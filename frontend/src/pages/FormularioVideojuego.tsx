@@ -120,8 +120,8 @@ export function FormularioVideojuego() {
   if (cargando) {
     return (
       <MarcoPagina>
-        <div role="status" className="panel flex items-center gap-4 p-8 text-sm text-mist">
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal shadow-[0_0_18px_rgba(217,164,65,0.8)]" />
+        <div role="status" className="loading-state">
+          <span className="loading-dot" />
           Cargando videojuego...
         </div>
       </MarcoPagina>
@@ -133,21 +133,21 @@ export function FormularioVideojuego() {
       <div className="mx-auto max-w-3xl">
         <Link
           to="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-stone-400 transition hover:text-signal"
+          className="back-link mb-6"
         >
           <span aria-hidden="true">←</span>
           Volver a videojuegos
         </Link>
 
         <section className="panel overflow-hidden">
-          <div className="border-b border-line bg-gradient-to-r from-signal/[0.08] via-transparent to-earth/[0.08] px-6 py-7 sm:px-9">
-            <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-signal/20 bg-signal/[0.08] text-lg">
+          <div className="form-header">
+            <span className="form-icon-tile">
               <span aria-hidden="true">🎮</span>
             </span>
-            <h1 className="text-3xl font-extrabold tracking-[-0.04em] text-white">
+            <h1 className="form-title">
               {esEdicion ? "Editar videojuego" : "Añadir videojuego"}
             </h1>
-            <p className="mt-2 text-sm leading-6 text-mist">
+            <p className="form-description">
               Guarda los detalles del juego y registra sus logros en tu colección.
             </p>
           </div>
@@ -155,7 +155,7 @@ export function FormularioVideojuego() {
           {error && (
             <p
               role="alert"
-              className="mx-6 mt-6 rounded-xl border border-rose-400/20 bg-rose-400/[0.06] px-4 py-3 text-sm text-rose-200 sm:mx-9"
+              className="form-error mx-6 mt-6 sm:mx-9"
             >
               {error}
             </p>
@@ -170,7 +170,7 @@ export function FormularioVideojuego() {
           ) : (
             <form onSubmit={manejarEnvio} className="space-y-6 p-6 sm:p-9">
               <div>
-                <label htmlFor="nombre" className="mb-2 block text-sm font-semibold text-stone-200">
+                <label htmlFor="nombre" className="field-label">
                   Nombre del videojuego <span className="text-signal" aria-hidden="true">*</span>
                 </label>
                 <input
@@ -190,7 +190,7 @@ export function FormularioVideojuego() {
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div>
-                  <label htmlFor="plataforma" className="mb-2 block text-sm font-semibold text-stone-200">
+                  <label htmlFor="plataforma" className="field-label">
                     Plataforma
                   </label>
                   <select
@@ -215,7 +215,7 @@ export function FormularioVideojuego() {
                 </div>
 
                 <div>
-                  <label htmlFor="genero" className="mb-2 block text-sm font-semibold text-stone-200">
+                  <label htmlFor="genero" className="field-label">
                     Género
                   </label>
                   <select
@@ -240,7 +240,7 @@ export function FormularioVideojuego() {
                 </div>
 
                 <div>
-                  <label htmlFor="estado" className="mb-2 block text-sm font-semibold text-stone-200">
+                  <label htmlFor="estado" className="field-label">
                     Estado
                   </label>
                   <select
@@ -286,7 +286,7 @@ export function FormularioVideojuego() {
                 </div>
 
                 {(formulario.logros ?? []).length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-line px-4 py-5 text-sm text-mist">
+                  <p className="empty-state">
                     Todavía no has añadido logros.
                   </p>
                 ) : (
@@ -317,7 +317,7 @@ export function FormularioVideojuego() {
                             onChange={(evento) =>
                               actualizarLogro(indice, { obtenido: evento.target.checked })
                             }
-                            className="h-4 w-4 accent-amber-400"
+                            className="checkbox-control"
                           />
                           Obtenido
                         </label>
