@@ -36,7 +36,7 @@ export type CambiosVideojuego = Partial<VideojuegoFormulario>;
 export interface Partida {
   _id: string;
   __v: number;
-  videojuego: string | Videojuego;
+  videojuego: string | Videojuego | null;
   fecha: string;
   duracionMinutos: number;
   porcentajeAvance?: number;

@@ -21,9 +21,8 @@ function formatearDuracion(minutos: number): string {
 }
 
 function nombreVideojuego(partida: Partida): string {
-  return typeof partida.videojuego === "string"
-    ? "Videojuego"
-    : partida.videojuego.nombre;
+  if (partida.videojuego === null) return "Videojuego eliminado";
+  return typeof partida.videojuego === "string" ? "Videojuego" : partida.videojuego.nombre;
 }
 
 export function ListaPartidas() {
@@ -181,15 +180,15 @@ export function ListaPartidas() {
                         {formatearFecha(partida.fecha)}
                       </td>
                       <td className="px-5 py-4">
-                        {typeof partida.videojuego === "string" ? (
-                          <span className="font-semibold text-white">{nombreVideojuego(partida)}</span>
-                        ) : (
+                        {partida.videojuego && typeof partida.videojuego !== "string" ? (
                           <Link
                             to={`/videojuegos/${partida.videojuego._id}`}
                             className="font-bold text-white transition hover:text-signal"
                           >
                             {nombreVideojuego(partida)}
                           </Link>
+                        ) : (
+                          <span className="font-semibold text-white">{nombreVideojuego(partida)}</span>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-5 py-4 text-stone-300">
