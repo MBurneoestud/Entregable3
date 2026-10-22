@@ -194,7 +194,12 @@ export function ListaVideojuegos() {
                     return (
                       <tr key={videojuego._id} className="transition hover:bg-white/[0.025]">
                         <th scope="row" className="px-5 py-4 text-left font-bold text-white">
-                          {videojuego.nombre}
+                          <Link
+                            to={`/videojuegos/${encodeURIComponent(videojuego._id)}`}
+                            className="transition hover:text-signal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+                          >
+                            {videojuego.nombre}
+                          </Link>
                         </th>
                         <td className="px-5 py-4 text-stone-300">
                           {videojuego.plataforma === "Movil"
