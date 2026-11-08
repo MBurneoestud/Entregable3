@@ -1,4 +1,5 @@
 import { ApiError } from "../apiError";
+import { avanceActual } from "../dominio/partidas";
 import {
   EstadoVideojuego,
   Genero,
@@ -8,7 +9,8 @@ import {
 } from "../models/videojuego.model";
 import { listarPartidasDeVideojuego } from "./partida.service";
 
-type CamposVideojuego = "nombre" | "plataforma" | "genero" | "estado" | "logros";
+type CamposVideojuego =
+  "nombre" | "plataforma" | "genero" | "estado" | "logros";
 
 export type DatosVideojuego = Pick<IVideojuego, "nombre"> &
   Partial<Pick<IVideojuego, Exclude<CamposVideojuego, "nombre">>>;
@@ -22,7 +24,7 @@ export interface FiltrosVideojuego {
 }
 
 export async function listarVideojuegos(
-  filtros: FiltrosVideojuego = {}
+  filtros: FiltrosVideojuego = {},
 ): Promise<IVideojuego[]> {
   return Videojuego.find(filtros).sort({ createdAt: -1 });
 }
@@ -35,13 +37,15 @@ export async function buscarVideojuegoPorId(id: string): Promise<IVideojuego> {
   return videojuego;
 }
 
-export async function crearVideojuego(datos: DatosVideojuego): Promise<IVideojuego> {
+export async function crearVideojuego(
+  datos: DatosVideojuego,
+): Promise<IVideojuego> {
   return Videojuego.create(datos);
 }
 
 export async function actualizarVideojuego(
   id: string,
-  cambios: CambiosVideojuego
+  cambios: CambiosVideojuego,
 ): Promise<IVideojuego> {
   const actualizada = await Videojuego.findByIdAndUpdate(id, cambios, {
     new: true,
@@ -56,7 +60,7 @@ export async function actualizarVideojuego(
 export async function actualizarEstadoLogro(
   id: string,
   indiceLogro: number,
-  obtenido: boolean
+  obtenido: boolean,
 ): Promise<IVideojuego> {
   const videojuego = await Videojuego.findById(id);
   if (!videojuego) {
@@ -91,8 +95,9 @@ export async function obtenerResumenVideojuego(id: string): Promise<{
   return {
     totalPartidas: partidas.length,
     horasTotales:
-      partidas.reduce((total, partida) => total + partida.duracionMinutos, 0) / 60,
+      partidas.reduce((total, partida) => total + partida.duracionMinutos, 0) /
+      60,
     ultimaPartida: ultimaPartida?.fecha ?? null,
-    porcentajeAvanceActual: ultimaPartida?.porcentajeAvance ?? null,
+    porcentajeAvanceActual: avanceActual(partidas),
   };
 }

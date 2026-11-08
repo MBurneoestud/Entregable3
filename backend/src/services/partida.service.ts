@@ -1,25 +1,34 @@
 import { ApiError } from "../apiError";
+import { ORDEN_RECIENTES } from "../dominio/partidas";
 import { IPartida, Partida } from "../models/partida.model";
 import { Videojuego } from "../models/videojuego.model";
 
-type CamposPartida = "videojuego" | "fecha" | "duracionMinutos" | "porcentajeAvance" | "notas";
+type CamposPartida =
+  "videojuego" | "fecha" | "duracionMinutos" | "porcentajeAvance" | "notas";
 
-export type DatosPartida = Pick<IPartida, "videojuego" | "fecha" | "duracionMinutos"> &
+export type DatosPartida = Pick<
+  IPartida,
+  "videojuego" | "fecha" | "duracionMinutos"
+> &
   Partial<Pick<IPartida, "porcentajeAvance" | "notas">>;
 
 export type CambiosPartida = Partial<Pick<IPartida, CamposPartida>>;
 
-export async function listarPartidas(videojuegoId?: string): Promise<IPartida[]> {
+export async function listarPartidas(
+  videojuegoId?: string,
+): Promise<IPartida[]> {
   const filtro = videojuegoId ? { videojuego: videojuegoId } : {};
-  return Partida.find(filtro).populate("videojuego").sort({ fecha: -1 });
+  return Partida.find(filtro).populate("videojuego").sort(ORDEN_RECIENTES);
 }
 
-export async function listarPartidasDeVideojuego(videojuegoId: string): Promise<IPartida[]> {
+export async function listarPartidasDeVideojuego(
+  videojuegoId: string,
+): Promise<IPartida[]> {
   const videojuego = await Videojuego.findById(videojuegoId);
   if (!videojuego) {
     throw new ApiError(404, `No existe un videojuego con id ${videojuegoId}`);
   }
-  return Partida.find({ videojuego: videojuegoId }).sort({ fecha: -1 });
+  return Partida.find({ videojuego: videojuegoId }).sort(ORDEN_RECIENTES);
 }
 
 export async function buscarPartidaPorId(id: string): Promise<IPartida> {
@@ -33,19 +42,25 @@ export async function buscarPartidaPorId(id: string): Promise<IPartida> {
 export async function crearPartida(datos: DatosPartida): Promise<IPartida> {
   const videojuego = await Videojuego.findById(datos.videojuego);
   if (!videojuego) {
-    throw new ApiError(404, `No existe un videojuego con id ${datos.videojuego}`);
+    throw new ApiError(
+      404,
+      `No existe un videojuego con id ${datos.videojuego}`,
+    );
   }
   return Partida.create(datos);
 }
 
 export async function actualizarPartida(
   id: string,
-  cambios: CambiosPartida
+  cambios: CambiosPartida,
 ): Promise<IPartida> {
   if (cambios.videojuego) {
     const videojuego = await Videojuego.findById(cambios.videojuego);
     if (!videojuego) {
-      throw new ApiError(404, `No existe un videojuego con id ${cambios.videojuego}`);
+      throw new ApiError(
+        404,
+        `No existe un videojuego con id ${cambios.videojuego}`,
+      );
     }
   }
 
