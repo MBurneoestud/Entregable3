@@ -1,84 +1,144 @@
 const { describe, test } = require("node:test");
 const assert = require("node:assert/strict");
+const {
+  diaCalendario,
+  interpretarFecha,
+  hoyEcuador,
+  esFechaFutura,
+  sumarDias,
+  inicioSemana,
+} = require("../../backend/src/dominio/fechas");
 
-// backend/src/dominio/fechas.ts todavía no existe: se implementará cuando haya
-// una spec en docs/specs/ (p. ej. la de metas y rachas). Mientras tanto, la
-// suite se marca como omitida en lugar de fallar.
-let fechas = null;
-try {
-  fechas = require("../../backend/src/dominio/fechas");
-} catch (error) {
-  if (error.code !== "MODULE_NOT_FOUND") throw error;
-}
-const opciones = fechas
-  ? {}
-  : { skip: "backend/src/dominio/fechas.ts no existe todavía" };
-const { diaCalendario, interpretarFecha, esFechaFutura } = fechas ?? {};
-
-// Las fechas se construyen en hora local para que los tests no dependan de TZ.
-const hoy = new Date(2026, 9, 28, 10, 0);
-
-function haceDias(dias, hora = 10, minuto = 0) {
-  return new Date(2026, 9, 28 - dias, hora, minuto);
+// Todas las fechas se construyen en UTC para que los tests no dependan de la
+// zona horaria del proceso (diagnóstico #17).
+function utc(anio, mes, dia, hora = 0, minuto = 0) {
+  return new Date(Date.UTC(anio, mes - 1, dia, hora, minuto));
 }
 
-describe("diaCalendario", opciones, () => {
-  test("dos partidas a las 00:01 y a las 23:59 caen el mismo día", () => {
+describe("diaCalendario", () => {
+  test("devuelve la parte UTC de la fecha en formato AAAA-MM-DD", () => {
+    assert.equal(diaCalendario(utc(2026, 10, 21)), "2026-10-21");
+  });
+
+  test("las 00:01 y las 23:59 UTC caen el mismo día", () => {
     assert.equal(
-      diaCalendario(new Date(2026, 9, 28, 0, 1)),
-      diaCalendario(new Date(2026, 9, 28, 23, 59)),
+      diaCalendario(utc(2026, 10, 28, 0, 1)),
+      diaCalendario(utc(2026, 10, 28, 23, 59)),
     );
   });
 
   test("las 23:59 y las 00:00 siguientes son días distintos", () => {
     assert.ok(
-      diaCalendario(new Date(2026, 9, 28, 23, 59)) <
-        diaCalendario(new Date(2026, 9, 29, 0, 0)),
+      diaCalendario(utc(2026, 10, 28, 23, 59)) <
+        diaCalendario(utc(2026, 10, 29)),
     );
   });
 
   test("ordena los días a través de un cambio de mes y de año", () => {
     assert.ok(
-      diaCalendario(new Date(2026, 9, 31)) <
-        diaCalendario(new Date(2026, 10, 1)),
+      diaCalendario(utc(2026, 10, 31)) < diaCalendario(utc(2026, 11, 1)),
     );
     assert.ok(
-      diaCalendario(new Date(2026, 11, 31)) <
-        diaCalendario(new Date(2027, 0, 1)),
+      diaCalendario(utc(2026, 12, 31)) < diaCalendario(utc(2027, 1, 1)),
     );
   });
 });
 
-describe("interpretarFecha", opciones, () => {
-  test("interpreta la fecha del formulario (YYYY-MM-DD) como medianoche en hora local", () => {
-    const fecha = interpretarFecha("2026-10-21");
-    assert.equal(fecha.getFullYear(), 2026);
-    assert.equal(fecha.getMonth(), 9);
-    assert.equal(fecha.getDate(), 21);
-    assert.equal(fecha.getHours(), 0);
-  });
-
-  test("deja igual cualquier otro valor", () => {
-    const fecha = new Date();
-    assert.equal(interpretarFecha(fecha), fecha);
+describe("interpretarFecha", () => {
+  test("interpreta AAAA-MM-DD como las 00:00 UTC de ese día", () => {
     assert.equal(
-      interpretarFecha("2026-10-21T10:00:00Z"),
-      "2026-10-21T10:00:00Z",
+      interpretarFecha("2026-10-21").toISOString(),
+      "2026-10-21T00:00:00.000Z",
     );
-    assert.equal(interpretarFecha(undefined), undefined);
+  });
+
+  test("es la inversa de diaCalendario", () => {
+    assert.equal(diaCalendario(interpretarFecha("2027-01-01")), "2027-01-01");
+  });
+
+  for (const invalida of [
+    "2026-02-30",
+    "2026-13-01",
+    "21/10/2026",
+    "2026-10-21T10:00:00Z",
+    "",
+  ]) {
+    test(`rechaza "${invalida}" con un error 400`, () => {
+      assert.throws(
+        () => interpretarFecha(invalida),
+        (error) => {
+          assert.equal(error.name, "ApiError");
+          assert.equal(error.status, 400);
+          return true;
+        },
+      );
+    });
+  }
+});
+
+describe("hoyEcuador", () => {
+  test("a las 04:59 UTC todavía es el día anterior en Ecuador", () => {
+    assert.equal(hoyEcuador(new Date("2026-11-09T04:59:00Z")), "2026-11-08");
+  });
+
+  test("a las 05:00 UTC ya es el día siguiente en Ecuador", () => {
+    assert.equal(hoyEcuador(new Date("2026-11-09T05:00:00Z")), "2026-11-09");
   });
 });
 
-describe("esFechaFutura", opciones, () => {
-  test("una partida de mañana es futura", () => {
-    assert.equal(esFechaFutura(haceDias(-1, 0, 0), hoy), true);
+describe("esFechaFutura", () => {
+  test("mañana es futuro", () => {
+    assert.equal(esFechaFutura("2026-10-29", "2026-10-28"), true);
   });
 
-  test("una partida de hoy a las 23:59 no es futura", () => {
-    assert.equal(esFechaFutura(haceDias(0, 23, 59), hoy), false);
+  test("hoy no es futuro", () => {
+    assert.equal(esFechaFutura("2026-10-28", "2026-10-28"), false);
   });
 
-  test("una partida de ayer no es futura", () => {
-    assert.equal(esFechaFutura(haceDias(1), hoy), false);
+  test("ayer no es futuro", () => {
+    assert.equal(esFechaFutura("2026-10-27", "2026-10-28"), false);
+  });
+});
+
+describe("sumarDias", () => {
+  test("suma y resta días dentro del mes", () => {
+    assert.equal(sumarDias("2026-11-07", 1), "2026-11-08");
+    assert.equal(sumarDias("2026-11-07", -6), "2026-11-01");
+  });
+
+  test("cruza el cambio de mes", () => {
+    assert.equal(sumarDias("2026-10-31", 1), "2026-11-01");
+    assert.equal(sumarDias("2026-11-01", -1), "2026-10-31");
+  });
+
+  test("cruza el cambio de año", () => {
+    assert.equal(sumarDias("2026-12-31", 1), "2027-01-01");
+    assert.equal(sumarDias("2027-01-01", -1), "2026-12-31");
+  });
+
+  test("n = 0 devuelve el mismo día", () => {
+    assert.equal(sumarDias("2026-11-07", 0), "2026-11-07");
+  });
+});
+
+describe("inicioSemana", () => {
+  test("un lunes es su propio inicio de semana", () => {
+    assert.equal(inicioSemana("2026-11-02"), "2026-11-02");
+  });
+
+  test("un domingo pertenece a la semana que empezó el lunes anterior", () => {
+    assert.equal(inicioSemana("2026-11-08"), "2026-11-02");
+  });
+
+  test("un sábado a mitad de semana", () => {
+    assert.equal(inicioSemana("2026-11-07"), "2026-11-02");
+  });
+
+  test("cruza el cambio de mes", () => {
+    assert.equal(inicioSemana("2026-11-01"), "2026-10-26");
+  });
+
+  test("cruza el cambio de año", () => {
+    assert.equal(inicioSemana("2026-01-01"), "2025-12-29");
   });
 });
