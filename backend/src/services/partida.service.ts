@@ -1,6 +1,7 @@
 import { ApiError } from "../apiError";
 import { ORDEN_RECIENTES } from "../dominio/partidas";
 import { IPartida, Partida } from "../models/partida.model";
+import { actualizarHitosAlcanzados } from "./meta.service";
 import { Videojuego } from "../models/videojuego.model";
 
 type CamposPartida =
@@ -47,7 +48,9 @@ export async function crearPartida(datos: DatosPartida): Promise<IPartida> {
       `No existe un videojuego con id ${datos.videojuego}`,
     );
   }
-  return Partida.create(datos);
+  const partida = await Partida.create(datos);
+  await actualizarHitosAlcanzados(String(videojuego._id));
+  return partida;
 }
 
 export async function actualizarPartida(
@@ -71,6 +74,14 @@ export async function actualizarPartida(
 
   if (!actualizada) {
     throw new ApiError(404, `No existe una partida con id ${id}`);
+  }
+
+  // Con populate, `populated()` devuelve el id original aunque el videojuego ya no exista.
+  const videojuegoId = String(
+    actualizada.populated("videojuego") ?? actualizada.videojuego,
+  );
+  if (await Videojuego.exists({ _id: videojuegoId })) {
+    await actualizarHitosAlcanzados(videojuegoId);
   }
   return actualizada;
 }

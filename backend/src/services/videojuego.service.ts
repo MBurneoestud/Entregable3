@@ -1,5 +1,8 @@
 import { ApiError } from "../apiError";
 import { avanceActual } from "../dominio/partidas";
+import { debeArchivarMeta } from "../dominio/progreso";
+import { Meta } from "../models/meta.model";
+import { archivarMeta } from "./meta.service";
 import {
   EstadoVideojuego,
   Genero,
@@ -54,6 +57,10 @@ export async function actualizarVideojuego(
   if (!actualizada) {
     throw new ApiError(404, `No existe un videojuego con id ${id}`);
   }
+  // B-18: al pasar a completado o abandonado se archiva la meta activa.
+  if (debeArchivarMeta(cambios.estado)) {
+    await archivarMeta(id, { siExiste: true });
+  }
   return actualizada;
 }
 
@@ -81,6 +88,8 @@ export async function eliminarVideojuego(id: string): Promise<void> {
   if (!resultado) {
     throw new ApiError(404, `No existe un videojuego con id ${id}`);
   }
+  // B-17: se eliminan todas sus metas (activa y archivadas) con sus hitos.
+  await Meta.deleteMany({ videojuego: id });
 }
 
 export async function obtenerResumenVideojuego(id: string): Promise<{
