@@ -12,6 +12,7 @@ import { logger } from "./middlewares/logger";
 import { errorHandler } from "./middlewares/errorHandler";
 import { videojuegoRouter } from "./routes/videojuego.routes";
 import { partidaRouter } from "./routes/partida.routes";
+import { metaRouter } from "./routes/meta.routes";
 import { ApiError } from "./apiError";
 
 export function crearApp(): Express {
@@ -26,11 +27,14 @@ export function crearApp(): Express {
     res.json({ estado: "ok", requestId: req.id });
   });
 
+  app.use("/api/videojuegos/:id", metaRouter);
   app.use("/api/videojuegos", videojuegoRouter);
   app.use("/api/partidas", partidaRouter);
 
   app.use((req: Request, res: Response, next) => {
-    next(new ApiError(404, `Ruta no encontrada: ${req.method} ${req.originalUrl}`));
+    next(
+      new ApiError(404, `Ruta no encontrada: ${req.method} ${req.originalUrl}`),
+    );
   });
 
   app.use(errorHandler);
