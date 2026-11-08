@@ -87,7 +87,7 @@ La respuesta tiene esta forma:
 - **Frontend:** React, TypeScript, Vite y React Router.
 - **Configuración backend:** `backend/src/config/env.ts` lee y valida las variables de entorno; `backend/src/DBconnection.ts` se ocupa de conectar con MongoDB.
 - **Backend organizado en:** `models`, `routes`, `controllers`, `services` y `middlewares`.
-- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts` y `frontend/src/api/partidaApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
+- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts`, `frontend/src/api/partidaApi.ts` y `frontend/src/api/metaApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
 
 ## Funcionalidades
 
@@ -97,8 +97,23 @@ La respuesta tiene esta forma:
 - Marcar logros como obtenidos o pendientes.
 - Listar y filtrar partidas, ver su videojuego relacionado y eliminar sesiones.
 - Registrar una partida con fecha, duración, avance y notas.
+- Fijar, cambiar y quitar una meta semanal por videojuego, con progreso de la semana, racha, hitos y últimas 4 semanas (ver [Meta semanal](#meta-semanal)).
 - Mostrar estados de carga, error y contenido vacío en las vistas que dependen de la API.
 - Incluir un identificador de petición, registrar solicitudes y centralizar el manejo de errores HTTP.
+
+### Meta semanal
+
+El detalle de cada videojuego incluye la sección «Meta semanal», entre «Resumen de actividad» e «Información» (componente `frontend/src/components/MetaSemanal.tsx`). Todos sus datos salen de `GET /api/videojuegos/:id/progreso-semanal`; la interfaz no recalcula nada.
+
+- **Sin meta:** se muestra el formulario de horas (más de 0 y hasta 100) y días por semana (1–7) con el botón «Fijar meta».
+- **Con meta:** «Meta: 5 h y 4 días por semana», dos barras de progreso («3,5 de 5 h · 70 %»; la barra nunca pasa del 100 %, el texto sí muestra el porcentaje real) y la insignia «Meta cumplida» o «En curso».
+- **Cambiar meta:** abre el formulario con los valores actuales y avisa que la meta actual quedará archivada. **Quitar meta** pide confirmación.
+- **Racha y últimas 4 semanas:** siempre visibles, también sin meta o en juegos completados o abandonados.
+- **Hitos:** hasta 5 por meta, con descripción y porcentaje objetivo; se ven como «Pendiente», «Alcanzado» o «Alcanzado el 30 oct 2026». Eliminar un hito pide confirmación.
+- En juegos **completados o abandonados** el formulario de meta aparece deshabilitado.
+- Al eliminar un videojuego también se borran su meta semanal y sus hitos; la confirmación lo avisa.
+
+**Fechas:** las fechas de partida (`AAAA-MM-DD` guardadas a medianoche UTC) se formatean en UTC con `formatearFecha` (`frontend/src/utils/formato.ts`), para que no se vean un día antes en zonas horarias negativas como Ecuador. Las fechas en que se alcanza un hito son instantes reales y se muestran en hora de Ecuador (`America/Guayaquil`).
 
 ## API REST
 
@@ -168,7 +183,7 @@ La API queda disponible en `http://localhost:3000`; su comprobación de salud es
 
 ### Tests
 
-Los tests viven en `test/` (raíz del repositorio), usan `node:test` y se lanzan desde `backend/`. No necesitan conexión a MongoDB:
+Los tests viven en `test/` (raíz del repositorio), usan `node:test` y se lanzan desde `backend/`. Incluyen las utilidades de formato del frontend (`test/frontend/formato.test.js`). No necesitan conexión a MongoDB:
 
 ```powershell
 cd backend

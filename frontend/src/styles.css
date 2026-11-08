@@ -33,8 +33,16 @@
     min-height: 100vh;
     margin: 0;
     background:
-      radial-gradient(ellipse at 12% 0%, rgba(200, 217, 106, 0.055), transparent 34rem),
-      radial-gradient(ellipse at 92% 42%, rgba(217, 154, 91, 0.045), transparent 38rem),
+      radial-gradient(
+        ellipse at 12% 0%,
+        rgba(200, 217, 106, 0.055),
+        transparent 34rem
+      ),
+      radial-gradient(
+        ellipse at 92% 42%,
+        rgba(217, 154, 91, 0.045),
+        transparent 38rem
+      ),
       var(--color-canvas);
     color: var(--color-copy);
   }
@@ -215,6 +223,14 @@
 
   .error-state {
     @apply panel border-rose-400/20 p-6 text-sm text-rose-200;
+  }
+
+  .progress-track {
+    @apply mt-2 h-2.5 w-full overflow-hidden rounded-full border border-signal/20 bg-signal/[0.07];
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full bg-signal/60 transition-[width] duration-200;
   }
 
   .table-heading {

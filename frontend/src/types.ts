@@ -1,9 +1,24 @@
 export type Plataforma = "PC" | "PlayStation" | "Xbox" | "Switch" | "Movil";
-export type Genero = "accion" | "rol" | "estrategia" | "puzzle" | "deportes" | "otro";
-export type EstadoVideojuego = "jugando" | "pausado" | "completado" | "abandonado";
+export type Genero =
+  "accion" | "rol" | "estrategia" | "puzzle" | "deportes" | "otro";
+export type EstadoVideojuego =
+  "jugando" | "pausado" | "completado" | "abandonado";
 
-export const PLATAFORMAS: Plataforma[] = ["PC", "PlayStation", "Xbox", "Switch", "Movil"];
-export const GENEROS: Genero[] = ["accion", "rol", "estrategia", "puzzle", "deportes", "otro"];
+export const PLATAFORMAS: Plataforma[] = [
+  "PC",
+  "PlayStation",
+  "Xbox",
+  "Switch",
+  "Movil",
+];
+export const GENEROS: Genero[] = [
+  "accion",
+  "rol",
+  "estrategia",
+  "puzzle",
+  "deportes",
+  "otro",
+];
 export const ESTADOS_VIDEOJUEGO: EstadoVideojuego[] = [
   "jugando",
   "pausado",
@@ -78,4 +93,72 @@ export interface ResumenVideojuego {
   horasTotales: number;
   ultimaPartida: string | null;
   porcentajeAvanceActual: number | null;
+}
+
+// E2 — Meta semanal (spec frontend §3, alineada con la spec backend §5)
+export interface Hito {
+  _id: string;
+  descripcion: string;
+  porcentajeObjetivo: number;
+  alcanzadoEn?: string;
+}
+
+export interface Meta {
+  _id: string;
+  horasSemanales: number;
+  diasPorSemana: number;
+  activa: boolean;
+  vigenteDesde: string;
+  hitos: Hito[];
+}
+
+export type EstadoSemana = "cumplida" | "no_cumplida" | "sin_meta";
+
+export interface SemanaHistorial {
+  inicio: string;
+  fin: string;
+  estado: EstadoSemana;
+  horas?: number;
+  dias?: number;
+  porcentajeHoras?: number;
+  porcentajeDias?: number;
+}
+
+export interface HitoProgreso {
+  _id: string;
+  descripcion: string;
+  porcentajeObjetivo: number;
+  alcanzado: boolean;
+  alcanzadoEn: string | null;
+}
+
+export interface ProgresoSemanal {
+  semana: { inicio: string; fin: string };
+  meta: { horasSemanales: number; diasPorSemana: number } | null;
+  horasSemana: number;
+  porcentajeHoras: number | null;
+  diasJugadosSemana: number;
+  porcentajeDias: number | null;
+  cumplida: boolean | null;
+  rachaActual: number;
+  mejorRacha: number;
+  porcentajeAvanceActual: number | null;
+  hitos: HitoProgreso[];
+  ultimas4: SemanaHistorial[];
+  semanasCumplidas: number;
+  semanasConMeta: number;
+}
+
+export interface MetaFormulario {
+  horasSemanales: number;
+  diasPorSemana: number;
+}
+
+export interface HitoFormulario {
+  descripcion: string;
+  porcentajeObjetivo: number;
+}
+
+export interface MetaRespuesta {
+  meta: Meta;
 }
