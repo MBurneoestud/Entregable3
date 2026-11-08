@@ -7,7 +7,7 @@
 
 import { Types } from "mongoose";
 import { ApiError } from "../apiError";
-import { avanceActual } from "../dominio/partidas";
+import { avanceActualHastaHoy } from "../dominio/partidas";
 import {
   aProgresoSemanal,
   calcularProgresoDesde,
@@ -54,7 +54,8 @@ async function avanceDe(videojuegoId: string): Promise<number | null> {
   const partidas = await Partida.find({ videojuego: videojuegoId }).select(
     "fecha createdAt porcentajeAvance",
   );
-  return avanceActual(partidas);
+  // B-07: las partidas con fecha futura no cuentan para el avance.
+  return avanceActualHastaHoy(partidas);
 }
 
 export async function obtenerMetaActiva(videojuegoId: string): Promise<IMeta> {

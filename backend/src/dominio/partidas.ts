@@ -5,6 +5,8 @@
  * acceso a la base de datos para que resumen y progreso compartan criterio.
  */
 
+import { diaCalendario, hoyEcuador } from "./fechas";
+
 export interface PartidaOrdenable {
   fecha: Date;
   createdAt: Date;
@@ -30,4 +32,20 @@ export function avanceActual(
   partidas: readonly PartidaOrdenable[],
 ): number | null {
   return ordenarPartidasRecientes(partidas)[0]?.porcentajeAvance ?? null;
+}
+
+/** Partidas cuyo día calendario no es posterior a `hoy` (B-06, B-07). */
+export function partidasHastaHoy<T extends PartidaOrdenable>(
+  partidas: readonly T[],
+  hoy: string = hoyEcuador(),
+): T[] {
+  return partidas.filter((partida) => diaCalendario(partida.fecha) <= hoy);
+}
+
+/** Avance actual sin contar partidas con fecha futura (B-07, B-16). */
+export function avanceActualHastaHoy(
+  partidas: readonly PartidaOrdenable[],
+  hoy: string = hoyEcuador(),
+): number | null {
+  return avanceActual(partidasHastaHoy(partidas, hoy));
 }

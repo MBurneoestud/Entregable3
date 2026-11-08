@@ -12,7 +12,7 @@ import {
   porcentajeObjetivoValido,
 } from "../models/meta.model";
 import { diaCalendario, hoyEcuador, inicioSemana, sumarDias } from "./fechas";
-import { avanceActual, PartidaOrdenable } from "./partidas";
+import { avanceActual, PartidaOrdenable, partidasHastaHoy } from "./partidas";
 
 export interface PartidaCalculo extends PartidaOrdenable {
   duracionMinutos: number;
@@ -122,9 +122,7 @@ export function calcularProgresoDesde<M extends MetaCalculo>(
   const ayer = sumarDias(hoy, -1);
 
   // B-06, B-07: día calendario de la partida y descartar las futuras.
-  const validas = partidas.filter(
-    (partida) => diaCalendario(partida.fecha) <= hoy,
-  );
+  const validas = partidasHastaHoy(partidas, hoy);
   const porDia = new Map<string, number>();
   for (const partida of validas) {
     const dia = diaCalendario(partida.fecha);
