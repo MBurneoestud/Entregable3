@@ -9,4 +9,4 @@ metaRouter.put("/meta", metaController.fijar);
 metaRouter.delete("/meta", metaController.quitar);
 metaRouter.post("/meta/hitos", metaController.agregarHito);
 metaRouter.delete("/meta/hitos/:hitoId", metaController.eliminarHito);
-metaRouter.get("/progreso", metaController.obtenerProgreso);
+metaRouter.get("/progreso-semanal", metaController.obtenerProgreso);

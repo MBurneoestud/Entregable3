@@ -49,7 +49,7 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 - **H1-C2** · **DADO** un juego con meta de 5 h y 3 días **CUANDO** la cambio a 8 h y 3 días **ENTONCES** se muestra la nueva meta, y las semanas pasadas se siguen evaluando con la meta de 5 h.
 - **H1-C3** · **DADO** una meta con hitos **CUANDO** cambio la meta **ENTONCES** la nueva meta conserva los mismos hitos, con su estado y su fecha de alcance.
 - **H1-C4** · **DADO** un juego con meta de 5 h y 3 días **CUANDO** guardo otra vez 5 h y 3 días **ENTONCES** no cambia nada y no se crea una meta nueva en el historial.
-- **H1-C5** · **DADO** el formulario de meta **CUANDO** intento guardar 0 horas, más de 168 horas, 0 días, 8 días o días con decimales **ENTONCES** veo un mensaje en español que explica el límite y la meta no se guarda.
+- **H1-C5** · **DADO** el formulario de meta **CUANDO** intento guardar 0 horas, más de 100 horas, 0 días, 8 días o días con decimales **ENTONCES** veo un mensaje en español que explica el límite y la meta no se guarda.
 
 ### E2-H2 — Quitar la meta semanal
 
@@ -105,10 +105,10 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 
 **Como** persona usuaria **quiero** añadir a mi meta hitos de avance (p. ej. «Llegar al 50 %») y eliminarlos **para** marcarme etapas dentro del juego.
 
-- **H7-C1** · **DADO** una meta y un avance actual del 40 % **CUANDO** añado el hito «Llegar al 50 %» con objetivo 50 **ENTONCES** aparece en la lista como «Pendiente».
-- **H7-C2** · **DADO** un avance actual del 40 % **CUANDO** intento añadir un hito con objetivo 30 o 40 **ENTONCES** veo «El objetivo del hito debe ser mayor que el avance actual (40 %)» y no se crea.
+- **H7-C1** · **DADO** una meta y un avance actual del 40 % **CUANDO** añado el hito «Llegar al 50 %» con porcentaje objetivo 50 **ENTONCES** aparece en la lista como «Pendiente».
+- **H7-C2** · **DADO** un avance actual del 40 % **CUANDO** intento añadir un hito con porcentaje objetivo 30 o 40 **ENTONCES** veo «El porcentaje objetivo del hito debe ser mayor que el avance actual (40 %)» y no se crea.
 - **H7-C3** · **DADO** una meta con 5 hitos **CUANDO** miro el formulario de hitos **ENTONCES** aparece deshabilitado; y si aun así intento añadir otro, veo «Una meta admite como máximo 5 hitos».
-- **H7-C4** · **DADO** un hito con objetivo 50 **CUANDO** intento añadir otro con objetivo 50 **ENTONCES** veo «Ya existe un hito con objetivo 50 %» y no se crea.
+- **H7-C4** · **DADO** un hito con porcentaje objetivo 50 **CUANDO** intento añadir otro con porcentaje objetivo 50 **ENTONCES** veo «Ya existe un hito con porcentaje objetivo 50 %» y no se crea.
 - **H7-C5** · **DADO** un hito **CUANDO** lo elimino y confirmo **ENTONCES** desaparece de la lista.
 - **H7-C6** · **DADO** un juego sin meta **CUANDO** abro su detalle **ENTONCES** no puedo añadir hitos.
 
@@ -116,9 +116,9 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 
 **Como** persona usuaria **quiero** que mis hitos se marquen solos como alcanzados cuando llego a su avance **para** ver mis logros sin tener que marcarlos.
 
-- **H8-C1** · **DADO** un hito pendiente con objetivo 50 **CUANDO** registro una partida con avance del 55 % **ENTONCES** el hito aparece «Alcanzado el» con la fecha de hoy.
-- **H8-C2** · **DADO** un hito alcanzado el 30 oct 2026 **CUANDO** registro una partida con un avance menor **ENTONCES** sigue «Alcanzado el 30 oct 2026».
-- **H8-C3** · **DADO** un hito alcanzado **CUANDO** borro la partida con la que se alcanzó **ENTONCES** sigue alcanzado.
+- **H8-C1** · **DADO** un hito pendiente con porcentaje objetivo 50 **CUANDO** registro una partida con avance del 55 % **ENTONCES** el hito aparece «Alcanzado el» con la fecha de hoy.
+- **H8-C2** · **DADO** un hito alcanzado el 30 oct 2026 **CUANDO** registro una partida con un avance menor **ENTONCES** pasa a «Pendiente» y su `alcanzadoEn` (30 oct 2026) se conserva.
+- **H8-C3** · **DADO** un hito alcanzado **CUANDO** borro la partida con la que se alcanzó **ENTONCES** el estado se recalcula con el nuevo avance actual (sin partidas, ningún hito alcanzado) y `alcanzadoEn` se conserva.
 - **H8-C4** · **DADO** dos partidas el mismo día, la primera con 55 % y la segunda, registrada después, con 45 % **CUANDO** se calcula el avance actual **ENTONCES** el avance actual es 45 %.
 
 ### E2-H9 — Ver las últimas 4 semanas
@@ -201,7 +201,7 @@ Además de la Definition of Done común, cada ticket tiene su DoD específica.
 #### E2-T05 · Funcionalidad · Cálculo puro de progreso
 - **Historias:** H5, H6, H7, H8, H9 · **Depende de:** T01
 - **DoD:**
-  - `backend/src/dominio/progreso.ts` exporta `calcularProgresoDesde`, `hitosPorAlcanzar`, `validarNuevoHito` y `debeArchivarMeta`, sin acceso a la base de datos.
+  - `backend/src/dominio/progreso.ts` exporta `calcularProgresoDesde`, `aProgresoSemanal`, `hitosPorAlcanzar`, `validarNuevoHito` y `debeArchivarMeta`, sin acceso a la base de datos.
   - `test/dominio/progreso.test.js` cubre todos los casos listados en la spec del backend (§6).
 
 #### E2-T06 · Funcionalidad · Servicio de metas
@@ -215,7 +215,7 @@ Además de la Definition of Done común, cada ticket tiene su DoD específica.
 - **DoD:**
   - Al eliminar un videojuego se eliminan sus metas.
   - Al pasar a completado o abandonado se archiva la meta; «pausado» no la toca.
-  - Al crear o actualizar una partida se actualizan los hitos alcanzados.
+  - Al crear, actualizar o eliminar una partida se actualizan los hitos alcanzados.
   - Verificación manual de H3-C1, H3-C4, H3-C6, H4-C1, H8-C1, H8-C2 y H8-C3 contra la API en local.
 
 #### E2-T08 · Funcionalidad · Endpoints

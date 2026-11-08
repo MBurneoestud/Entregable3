@@ -26,9 +26,9 @@ export async function fijar(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { horasPorSemana, diasPorSemana } = cuerpo(req);
+    const { horasSemanales, diasPorSemana } = cuerpo(req);
     const { meta, creada } = await metaService.fijarMeta(req.params.id, {
-      horasPorSemana,
+      horasSemanales,
       diasPorSemana,
     });
     res.status(creada ? 201 : 200).json({ meta });
@@ -56,10 +56,10 @@ export async function agregarHito(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { nombre, objetivo } = cuerpo(req);
+    const { descripcion, porcentajeObjetivo } = cuerpo(req);
     const meta = await metaService.agregarHito(req.params.id, {
-      nombre,
-      objetivo,
+      descripcion,
+      porcentajeObjetivo,
     });
     res.status(201).json({ meta });
   } catch (error) {
@@ -89,8 +89,8 @@ export async function obtenerProgreso(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const progreso = await metaService.calcularProgreso(req.params.id);
-    res.json({ progreso });
+    // B-23: el objeto de la spec §5, sin envoltorio.
+    res.json(await metaService.calcularProgreso(req.params.id));
   } catch (error) {
     next(error);
   }

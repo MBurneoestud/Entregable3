@@ -7,7 +7,7 @@ const ID_VIDEOJUEGO = "507f1f77bcf86cd799439011";
 function datosValidos() {
   return {
     videojuego: ID_VIDEOJUEGO,
-    horasPorSemana: 5,
+    horasSemanales: 5,
     diasPorSemana: 3,
     vigenteDesde: new Date(Date.UTC(2026, 10, 2, 15)),
   };
@@ -15,8 +15,8 @@ function datosValidos() {
 
 function hitos(n) {
   return Array.from({ length: n }, (_, i) => ({
-    nombre: `Hito ${i + 1}`,
-    objetivo: (i + 1) * 10,
+    descripcion: `Hito ${i + 1}`,
+    porcentajeObjetivo: (i + 1) * 10,
   }));
 }
 
@@ -32,26 +32,26 @@ describe("Modelo Meta", () => {
     assert.deepEqual([...meta.hitos], []);
   });
 
-  for (const horasPorSemana of [0.5, 168]) {
-    test(`acepta ${horasPorSemana} horas por semana`, () => {
-      assert.deepEqual(erroresDe({ ...datosValidos(), horasPorSemana }), {});
+  for (const horasSemanales of [0.5, 100]) {
+    test(`acepta ${horasSemanales} horas por semana`, () => {
+      assert.deepEqual(erroresDe({ ...datosValidos(), horasSemanales }), {});
     });
   }
 
-  for (const horasPorSemana of [0, -1, 169]) {
-    test(`rechaza ${horasPorSemana} horas por semana`, () => {
-      const errores = erroresDe({ ...datosValidos(), horasPorSemana });
+  for (const horasSemanales of [0, -1, 100.5, 101]) {
+    test(`rechaza ${horasSemanales} horas por semana`, () => {
+      const errores = erroresDe({ ...datosValidos(), horasSemanales });
       assert.equal(
-        errores.horasPorSemana.message,
-        "Las horas por semana deben ser un número mayor que 0 y como máximo 168",
+        errores.horasSemanales.message,
+        "Las horas por semana deben ser un número mayor que 0 y como máximo 100",
       );
     });
   }
 
-  test("exige horasPorSemana", () => {
+  test("exige horasSemanales", () => {
     const datos = datosValidos();
-    delete datos.horasPorSemana;
-    assert.ok(erroresDe(datos).horasPorSemana);
+    delete datos.horasSemanales;
+    assert.ok(erroresDe(datos).horasSemanales);
   });
 
   for (const diasPorSemana of [1, 7]) {
@@ -87,46 +87,46 @@ describe("Modelo Meta", () => {
     assert.equal(errores.hitos.message, "Una meta admite como máximo 5 hitos");
   });
 
-  for (const nombre of ["", "   "]) {
-    test(`rechaza un hito con nombre ${JSON.stringify(nombre)}`, () => {
+  for (const descripcion of ["", "   "]) {
+    test(`rechaza un hito con descripción ${JSON.stringify(descripcion)}`, () => {
       const errores = erroresDe({
         ...datosValidos(),
-        hitos: [{ nombre, objetivo: 50 }],
+        hitos: [{ descripcion, porcentajeObjetivo: 50 }],
       });
       assert.equal(
-        errores["hitos.0.nombre"].message,
-        "El nombre del hito es obligatorio",
+        errores["hitos.0.descripcion"].message,
+        "La descripción del hito es obligatoria",
       );
     });
   }
 
-  test("recorta los espacios del nombre del hito", () => {
+  test("recorta los espacios de la descripción del hito", () => {
     const meta = new Meta({
       ...datosValidos(),
-      hitos: [{ nombre: "  Jefe final  ", objetivo: 50 }],
+      hitos: [{ descripcion: "  Jefe final  ", porcentajeObjetivo: 50 }],
     });
-    assert.equal(meta.hitos[0].nombre, "Jefe final");
+    assert.equal(meta.hitos[0].descripcion, "Jefe final");
   });
 
-  for (const objetivo of [0, 101, 2.5]) {
-    test(`rechaza un hito con objetivo ${objetivo}`, () => {
+  for (const porcentajeObjetivo of [0, 101, 2.5]) {
+    test(`rechaza un hito con porcentaje objetivo ${porcentajeObjetivo}`, () => {
       const errores = erroresDe({
         ...datosValidos(),
-        hitos: [{ nombre: "Hito", objetivo }],
+        hitos: [{ descripcion: "Hito", porcentajeObjetivo }],
       });
       assert.equal(
-        errores["hitos.0.objetivo"].message,
-        "El objetivo del hito debe ser un entero entre 1 y 100",
+        errores["hitos.0.porcentajeObjetivo"].message,
+        "El porcentaje objetivo del hito debe ser un entero entre 1 y 100",
       );
     });
   }
 
-  test("rechaza dos hitos con el mismo objetivo", () => {
+  test("rechaza dos hitos con el mismo porcentaje objetivo", () => {
     const errores = erroresDe({
       ...datosValidos(),
       hitos: [
-        { nombre: "A", objetivo: 50 },
-        { nombre: "B", objetivo: 50 },
+        { descripcion: "A", porcentajeObjetivo: 50 },
+        { descripcion: "B", porcentajeObjetivo: 50 },
       ],
     });
     assert.ok(errores.hitos);

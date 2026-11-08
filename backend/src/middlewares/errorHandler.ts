@@ -9,12 +9,20 @@ import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import { ApiError } from "../apiError";
 
+function esClaveDuplicada(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: unknown }).code === 11000
+  );
+}
+
 export function errorHandler(
   err: unknown,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction
+  next: NextFunction,
 ): void {
   // 1) Errores de negocio propios.
   if (err instanceof ApiError) {
@@ -37,7 +45,19 @@ export function errorHandler(
     return;
   }
 
-  // 4) Cualquier otro error (de conexión, de servidor, inesperado).
+  // 4) Violación de un índice único de MongoDB (E11000), p. ej. dos PUT /meta
+  //    simultáneos que intentan crear dos metas activas (B-01, B-24).
+  if (esClaveDuplicada(err)) {
+    res.status(409).json({
+      error: "Ya existe un recurso con esos datos; vuelve a intentarlo",
+      requestId: req.id,
+    });
+    return;
+  }
+
+  // 5) Cualquier otro error (de conexión, de servidor, inesperado).
   console.error(`[${new Date().toISOString()}] id=${req.id} ERROR:`, err);
-  res.status(500).json({ error: "Error interno del servidor", requestId: req.id });
+  res
+    .status(500)
+    .json({ error: "Error interno del servidor", requestId: req.id });
 }

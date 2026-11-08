@@ -9,10 +9,11 @@ import { Types } from "mongoose";
 import { ApiError } from "../apiError";
 import { avanceActual } from "../dominio/partidas";
 import {
+  aProgresoSemanal,
   calcularProgresoDesde,
   debeArchivarMeta,
   hitosPorAlcanzar,
-  Progreso,
+  ProgresoSemanal,
   validarNuevoHito,
 } from "../dominio/progreso";
 import {
@@ -28,13 +29,13 @@ import { Partida } from "../models/partida.model";
 import { buscarVideojuegoPorId } from "./videojuego.service";
 
 export interface DatosMeta {
-  horasPorSemana: unknown;
+  horasSemanales: unknown;
   diasPorSemana: unknown;
 }
 
 export interface DatosHito {
-  nombre: unknown;
-  objetivo: unknown;
+  descripcion: unknown;
+  porcentajeObjetivo: unknown;
 }
 
 async function buscarMetaActiva(videojuegoId: string): Promise<IMeta | null> {
@@ -63,10 +64,10 @@ export async function obtenerMetaActiva(videojuegoId: string): Promise<IMeta> {
 
 export async function fijarMeta(
   videojuegoId: string,
-  { horasPorSemana, diasPorSemana }: DatosMeta,
+  { horasSemanales, diasPorSemana }: DatosMeta,
 ): Promise<{ meta: IMeta; creada: boolean }> {
   const videojuego = await buscarVideojuegoPorId(videojuegoId);
-  if (!horasValidas(horasPorSemana)) {
+  if (!horasValidas(horasSemanales)) {
     throw new ApiError(400, MENSAJES_META.horas);
   }
   if (!diasValidos(diasPorSemana)) {
@@ -81,7 +82,7 @@ export async function fijarMeta(
 
   if (
     actual &&
-    actual.horasPorSemana === horasPorSemana &&
+    actual.horasSemanales === horasSemanales &&
     actual.diasPorSemana === diasPorSemana
   ) {
     return { meta: actual, creada: false }; // B-04
@@ -89,9 +90,9 @@ export async function fijarMeta(
 
   // B-03: archivar antes de crear para respetar el índice único parcial (B-01).
   const hitos = actual
-    ? actual.hitos.map(({ nombre, objetivo, alcanzadoEn }) => ({
-        nombre,
-        objetivo,
+    ? actual.hitos.map(({ descripcion, porcentajeObjetivo, alcanzadoEn }) => ({
+        descripcion,
+        porcentajeObjetivo,
         alcanzadoEn,
       }))
     : [];
@@ -103,7 +104,7 @@ export async function fijarMeta(
 
   const meta = await Meta.create({
     videojuego: videojuegoId,
-    horasPorSemana,
+    horasSemanales,
     diasPorSemana,
     activa: true,
     vigenteDesde: ahora,
@@ -136,12 +137,12 @@ export async function agregarHito(
 
   const error = validarNuevoHito(meta, datos, await avanceDe(videojuegoId));
   if (error) {
-    throw new ApiError(400, error);
+    throw new ApiError(error.status, error.mensaje);
   }
 
   meta.hitos.push({
-    nombre: (datos.nombre as string).trim(),
-    objetivo: datos.objetivo as number,
+    descripcion: (datos.descripcion as string).trim(),
+    porcentajeObjetivo: datos.porcentajeObjetivo as number,
   });
   return meta.save();
 }
@@ -167,7 +168,7 @@ export async function eliminarHito(
   return meta.save();
 }
 
-/** Marca como alcanzados los hitos cuyo objetivo ya se superó (B-15). Nunca los revierte. */
+/** Marca como alcanzados los hitos cuyo porcentaje objetivo ya se superó (B-15). Nunca los revierte. */
 export async function actualizarHitosAlcanzados(
   videojuegoId: string,
 ): Promise<void> {
@@ -188,7 +189,7 @@ export async function actualizarHitosAlcanzados(
 export async function calcularProgreso(
   videojuegoId: string,
   ahora: Date = new Date(),
-): Promise<Progreso<IMeta>> {
+): Promise<ProgresoSemanal> {
   await buscarVideojuegoPorId(videojuegoId);
   const [partidas, metas] = await Promise.all([
     Partida.find({ videojuego: videojuegoId }).select(
@@ -196,5 +197,5 @@ export async function calcularProgreso(
     ),
     Meta.find({ videojuego: videojuegoId }).sort({ vigenteDesde: 1 }),
   ]);
-  return calcularProgresoDesde(partidas, metas, ahora);
+  return aProgresoSemanal(calcularProgresoDesde(partidas, metas, ahora));
 }

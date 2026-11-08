@@ -91,4 +91,9 @@ export async function eliminarPartida(id: string): Promise<void> {
   if (!resultado) {
     throw new ApiError(404, `No existe una partida con id ${id}`);
   }
+  // B-15: al borrar la partida más reciente el avance actual puede subir.
+  const videojuegoId = String(resultado.videojuego);
+  if (await Videojuego.exists({ _id: videojuegoId })) {
+    await actualizarHitosAlcanzados(videojuegoId);
+  }
 }

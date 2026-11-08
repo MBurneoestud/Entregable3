@@ -6,7 +6,11 @@
  */
 
 import { EstadoVideojuego } from "../models/videojuego.model";
-import { MAX_HITOS, MENSAJES_META, objetivoValido } from "../models/meta.model";
+import {
+  MAX_HITOS,
+  MENSAJES_META,
+  porcentajeObjetivoValido,
+} from "../models/meta.model";
 import { diaCalendario, hoyEcuador, inicioSemana, sumarDias } from "./fechas";
 import { avanceActual, PartidaOrdenable } from "./partidas";
 
@@ -15,12 +19,12 @@ export interface PartidaCalculo extends PartidaOrdenable {
 }
 
 export interface HitoCalculo {
-  objetivo: number;
+  porcentajeObjetivo: number;
   alcanzadoEn?: Date | null;
 }
 
 export interface MetaCalculo {
-  horasPorSemana: number;
+  horasSemanales: number;
   diasPorSemana: number;
   activa: boolean;
   vigenteDesde: Date;
@@ -47,20 +51,23 @@ export type SemanaHistorial =
 export interface Progreso<M extends MetaCalculo = MetaCalculo> {
   hoy: string;
   meta: M | null;
+  /** Semana actual con horas y días jugados, haya o no meta (B-23). */
+  semana: { inicio: string; fin: string; horas: number; dias: number };
   semanaActual: EvaluacionSemana | null;
   racha: number;
+  mejorRacha: number;
   porcentajeAvanceActual: number | null;
   ultimas4: SemanaHistorial[];
   semanasCumplidas: number;
   semanasConMeta: number;
 }
 
-function evaluar(
+/** Horas y días distintos jugados entre `inicio` y `fin` (ambos incluidos). */
+function jugadoEntre(
   porDia: Map<string, number>,
   inicio: string,
   fin: string,
-  meta: MetaCalculo,
-): EvaluacionSemana {
+): { horas: number; dias: number } {
   let dias = 0;
   let minutos = 0;
   for (const [dia, minutosDia] of porDia) {
@@ -69,15 +76,24 @@ function evaluar(
       minutos += minutosDia;
     }
   }
-  const horas = minutos / 60;
+  return { horas: minutos / 60, dias };
+}
+
+function evaluar(
+  porDia: Map<string, number>,
+  inicio: string,
+  fin: string,
+  meta: MetaCalculo,
+): EvaluacionSemana {
+  const { horas, dias } = jugadoEntre(porDia, inicio, fin);
   return {
     inicio,
     fin,
     horas,
     dias,
-    porcentajeHoras: Math.round((horas / meta.horasPorSemana) * 100), // B-09
+    porcentajeHoras: Math.round((horas / meta.horasSemanales) * 100), // B-09
     porcentajeDias: Math.round((dias / meta.diasPorSemana) * 100), // B-09
-    cumplida: horas >= meta.horasPorSemana && dias >= meta.diasPorSemana, // B-08
+    cumplida: horas >= meta.horasSemanales && dias >= meta.diasPorSemana, // B-08
   };
 }
 
@@ -120,9 +136,15 @@ export function calcularProgresoDesde<M extends MetaCalculo>(
   );
   const metaActiva = ordenadas.find((meta) => meta.activa) ?? null;
   const lunes = inicioSemana(hoy);
+  const domingo = sumarDias(lunes, 6);
 
+  const semana = {
+    inicio: lunes,
+    fin: domingo,
+    ...jugadoEntre(porDia, lunes, domingo),
+  };
   const semanaActual = metaActiva
-    ? evaluar(porDia, lunes, sumarDias(lunes, 6), metaActiva)
+    ? evaluar(porDia, lunes, domingo, metaActiva)
     : null;
 
   // B-10: racha hacia atrás desde hoy o, si hoy no hay partida, desde ayer.
@@ -135,6 +157,17 @@ export function calcularProgresoDesde<M extends MetaCalculo>(
   while (dia !== null && porDia.has(dia)) {
     racha++;
     dia = sumarDias(dia, -1);
+  }
+
+  // B-22: la serie más larga de días consecutivos en todo el historial.
+  let mejorRacha = 0;
+  let serie = 0;
+  let anterior: string | null = null;
+  for (const diaJugado of [...porDia.keys()].sort()) {
+    serie =
+      anterior !== null && sumarDias(anterior, 1) === diaJugado ? serie + 1 : 1;
+    mejorRacha = Math.max(mejorRacha, serie);
+    anterior = diaJugado;
   }
 
   // B-11, B-12: las 4 semanas completas anteriores, de la más antigua a la más reciente.
@@ -157,8 +190,10 @@ export function calcularProgresoDesde<M extends MetaCalculo>(
   return {
     hoy,
     meta: metaActiva,
+    semana,
     semanaActual,
     racha,
+    mejorRacha,
     porcentajeAvanceActual: avanceActual(validas),
     ultimas4,
     semanasCumplidas: ultimas4.filter((s) => s.estado === "cumplida").length,
@@ -166,36 +201,131 @@ export function calcularProgresoDesde<M extends MetaCalculo>(
   };
 }
 
-/** Hitos sin `alcanzadoEn` cuyo objetivo ya se alcanzó (B-15). */
+export interface HitoDescrito extends HitoCalculo {
+  _id: { toString(): string };
+  descripcion: string;
+}
+
+export interface MetaConHitos extends MetaCalculo {
+  hitos: readonly HitoDescrito[];
+}
+
+export interface HitoProgreso {
+  _id: string;
+  descripcion: string;
+  porcentajeObjetivo: number;
+  alcanzado: boolean;
+  alcanzadoEn: Date | null;
+}
+
+/** Respuesta de `GET /api/videojuegos/:id/progreso-semanal` (spec §5, B-23). */
+export interface ProgresoSemanal {
+  semana: { inicio: string; fin: string };
+  meta: { horasSemanales: number; diasPorSemana: number } | null;
+  horasSemana: number;
+  porcentajeHoras: number | null;
+  diasJugadosSemana: number;
+  porcentajeDias: number | null;
+  cumplida: boolean | null;
+  rachaActual: number;
+  mejorRacha: number;
+  porcentajeAvanceActual: number | null;
+  hitos: HitoProgreso[];
+  ultimas4: SemanaHistorial[];
+  semanasCumplidas: number;
+  semanasConMeta: number;
+}
+
+/** Convierte el progreso interno en la respuesta de la API (B-23). */
+export function aProgresoSemanal(
+  progreso: Progreso<MetaConHitos>,
+): ProgresoSemanal {
+  const { meta, semana, semanaActual } = progreso;
+  const avance = progreso.porcentajeAvanceActual;
+  const hitos = meta
+    ? [...meta.hitos]
+        .sort((a, b) => a.porcentajeObjetivo - b.porcentajeObjetivo)
+        .map((hito) => ({
+          _id: hito._id.toString(), // para eliminarlo desde la interfaz
+          descripcion: hito.descripcion,
+          porcentajeObjetivo: hito.porcentajeObjetivo,
+          // B-15: el estado se calcula con el avance actual (sin partidas, ninguno).
+          alcanzado: avance !== null && avance >= hito.porcentajeObjetivo,
+          alcanzadoEn: hito.alcanzadoEn ?? null, // H-6: fecha de la primera vez
+        }))
+    : [];
+
+  return {
+    semana: { inicio: semana.inicio, fin: semana.fin },
+    meta: meta
+      ? {
+          horasSemanales: meta.horasSemanales,
+          diasPorSemana: meta.diasPorSemana,
+        }
+      : null,
+    horasSemana: Math.round(semana.horas * 10) / 10, // 1 decimal
+    porcentajeHoras: semanaActual?.porcentajeHoras ?? null,
+    diasJugadosSemana: semana.dias,
+    porcentajeDias: semanaActual?.porcentajeDias ?? null,
+    cumplida: semanaActual?.cumplida ?? null,
+    rachaActual: progreso.racha,
+    mejorRacha: progreso.mejorRacha,
+    porcentajeAvanceActual: progreso.porcentajeAvanceActual,
+    hitos,
+    ultimas4: progreso.ultimas4,
+    semanasCumplidas: progreso.semanasCumplidas,
+    semanasConMeta: progreso.semanasConMeta,
+  };
+}
+
+/** Hitos sin `alcanzadoEn` cuyo porcentaje objetivo se alcanza por primera vez (B-15). */
 export function hitosPorAlcanzar<H extends HitoCalculo>(
   hitos: readonly H[],
   avance: number | null,
 ): H[] {
   if (avance === null) return [];
-  return hitos.filter((hito) => !hito.alcanzadoEn && hito.objetivo <= avance);
+  return hitos.filter(
+    (hito) => !hito.alcanzadoEn && hito.porcentajeObjetivo <= avance,
+  );
 }
 
-/** Mensaje de error de B-13 / B-14, o `null` si el hito se puede crear. */
+/** Error al crear un hito: 400 si los datos no son válidos, 409 si choca con otro hito (B-24). */
+export interface ErrorHito {
+  status: 400 | 409;
+  mensaje: string;
+}
+
+/** Error de B-13 / B-14 / B-24, o `null` si el hito se puede crear. */
 export function validarNuevoHito(
   meta: { hitos: readonly HitoCalculo[] },
-  { nombre, objetivo }: { nombre: unknown; objetivo: unknown },
+  {
+    descripcion,
+    porcentajeObjetivo,
+  }: { descripcion: unknown; porcentajeObjetivo: unknown },
   avance: number | null,
-): string | null {
-  if (typeof nombre !== "string" || nombre.trim() === "") {
-    return MENSAJES_META.nombreHito;
+): ErrorHito | null {
+  const invalido = (mensaje: string): ErrorHito => ({ status: 400, mensaje });
+  if (typeof descripcion !== "string" || descripcion.trim() === "") {
+    return invalido(MENSAJES_META.descripcionHito);
   }
-  if (!objetivoValido(objetivo)) {
-    return MENSAJES_META.objetivoHito;
+  if (!porcentajeObjetivoValido(porcentajeObjetivo)) {
+    return invalido(MENSAJES_META.porcentajeObjetivoHito);
   }
   if (meta.hitos.length >= MAX_HITOS) {
-    return MENSAJES_META.maxHitos;
+    return invalido(MENSAJES_META.maxHitos);
   }
-  if (meta.hitos.some((hito) => hito.objetivo === objetivo)) {
-    return MENSAJES_META.hitoRepetido(objetivo);
+  if (
+    meta.hitos.some((hito) => hito.porcentajeObjetivo === porcentajeObjetivo)
+  ) {
+    // B-24: choca con un hito que ya existe → conflicto, no petición mal formada.
+    return {
+      status: 409,
+      mensaje: MENSAJES_META.hitoRepetido(porcentajeObjetivo),
+    };
   }
   const avanceActualONulo = avance ?? 0;
-  if (objetivo <= avanceActualONulo) {
-    return MENSAJES_META.objetivoBajo(avanceActualONulo);
+  if (porcentajeObjetivo <= avanceActualONulo) {
+    return invalido(MENSAJES_META.objetivoBajo(avanceActualONulo));
   }
   return null;
 }

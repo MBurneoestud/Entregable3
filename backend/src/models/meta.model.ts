@@ -2,15 +2,16 @@ import { Document, model, Schema, Types } from "mongoose";
 
 export const MENSAJES_META = {
   horas:
-    "Las horas por semana deben ser un número mayor que 0 y como máximo 168",
+    "Las horas por semana deben ser un número mayor que 0 y como máximo 100",
   dias: "Los días por semana deben ser un entero entre 1 y 7",
-  nombreHito: "El nombre del hito es obligatorio",
-  objetivoHito: "El objetivo del hito debe ser un entero entre 1 y 100",
+  descripcionHito: "La descripción del hito es obligatoria",
+  porcentajeObjetivoHito:
+    "El porcentaje objetivo del hito debe ser un entero entre 1 y 100",
   maxHitos: "Una meta admite como máximo 5 hitos",
-  hitoRepetido: (objetivo: number) =>
-    `Ya existe un hito con objetivo ${objetivo} %`,
+  hitoRepetido: (porcentajeObjetivo: number) =>
+    `Ya existe un hito con porcentaje objetivo ${porcentajeObjetivo} %`,
   objetivoBajo: (avance: number) =>
-    `El objetivo del hito debe ser mayor que el avance actual (${avance} %)`,
+    `El porcentaje objetivo del hito debe ser mayor que el avance actual (${avance} %)`,
   juegoCerrado:
     "No se puede fijar una meta en un videojuego completado o abandonado",
 } as const;
@@ -22,7 +23,7 @@ export function horasValidas(valor: unknown): valor is number {
     typeof valor === "number" &&
     Number.isFinite(valor) &&
     valor > 0 &&
-    valor <= 168
+    valor <= 100
   );
 }
 
@@ -35,7 +36,7 @@ export function diasValidos(valor: unknown): valor is number {
   );
 }
 
-export function objetivoValido(valor: unknown): valor is number {
+export function porcentajeObjetivoValido(valor: unknown): valor is number {
   return (
     typeof valor === "number" &&
     Number.isInteger(valor) &&
@@ -46,14 +47,14 @@ export function objetivoValido(valor: unknown): valor is number {
 
 export interface IHito {
   _id: Types.ObjectId;
-  nombre: string;
-  objetivo: number;
+  descripcion: string;
+  porcentajeObjetivo: number;
   alcanzadoEn?: Date;
 }
 
 export interface IMeta extends Document {
   videojuego: Types.ObjectId;
-  horasPorSemana: number;
+  horasSemanales: number;
   diasPorSemana: number;
   activa: boolean;
   vigenteDesde: Date;
@@ -64,17 +65,17 @@ export interface IMeta extends Document {
 }
 
 const HitoSchema = new Schema<IHito>({
-  nombre: {
+  descripcion: {
     type: String,
-    required: [true, MENSAJES_META.nombreHito],
+    required: [true, MENSAJES_META.descripcionHito],
     trim: true,
   },
-  objetivo: {
+  porcentajeObjetivo: {
     type: Number,
-    required: [true, MENSAJES_META.objetivoHito],
+    required: [true, MENSAJES_META.porcentajeObjetivoHito],
     validate: {
-      validator: objetivoValido,
-      message: MENSAJES_META.objetivoHito,
+      validator: porcentajeObjetivoValido,
+      message: MENSAJES_META.porcentajeObjetivoHito,
     },
   },
   alcanzadoEn: { type: Date },
@@ -87,7 +88,7 @@ const MetaSchema = new Schema<IMeta>(
       ref: "Videojuego",
       required: [true, "La meta debe estar vinculada a un videojuego"],
     },
-    horasPorSemana: {
+    horasSemanales: {
       type: Number,
       required: [true, MENSAJES_META.horas],
       validate: { validator: horasValidas, message: MENSAJES_META.horas },
@@ -116,8 +117,10 @@ const MetaSchema = new Schema<IMeta>(
         },
         {
           validator: (hitos: IHito[]) =>
-            new Set(hitos.map((hito) => hito.objetivo)).size === hitos.length,
-          message: "No puede haber dos hitos con el mismo objetivo en una meta",
+            new Set(hitos.map((hito) => hito.porcentajeObjetivo)).size ===
+            hitos.length,
+          message:
+            "No puede haber dos hitos con el mismo porcentaje objetivo en una meta",
         },
       ],
     },

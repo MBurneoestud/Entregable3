@@ -1,6 +1,7 @@
 const { describe, test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  aProgresoSemanal,
   calcularProgresoDesde,
   hitosPorAlcanzar,
   validarNuevoHito,
@@ -25,9 +26,9 @@ function partida(dia, duracionMinutos, porcentajeAvance) {
 }
 
 /** Meta con instantes reales de vigencia (ISO). Sin `hasta` → activa. */
-function meta(horasPorSemana, diasPorSemana, desde, hasta) {
+function meta(horasSemanales, diasPorSemana, desde, hasta) {
   return {
-    horasPorSemana,
+    horasSemanales,
     diasPorSemana,
     activa: !hasta,
     vigenteDesde: new Date(desde),
@@ -158,7 +159,7 @@ describe("calcularProgresoDesde — semana", () => {
       ],
       AHORA,
     );
-    assert.equal(progreso.meta.horasPorSemana, 2);
+    assert.equal(progreso.meta.horasSemanales, 2);
     assert.equal(progreso.semanaActual.porcentajeHoras, 125);
     assert.equal(progreso.semanaActual.cumplida, true);
   });
@@ -338,12 +339,12 @@ describe("calcularProgresoDesde — racha (caso 11)", () => {
 describe("hitosPorAlcanzar (caso 13)", () => {
   const yaAlcanzado = new Date("2026-10-30T22:10:00Z");
   const hitos = [
-    { objetivo: 25, alcanzadoEn: yaAlcanzado },
-    { objetivo: 50 },
-    { objetivo: 75 },
+    { porcentajeObjetivo: 25, alcanzadoEn: yaAlcanzado },
+    { porcentajeObjetivo: 50 },
+    { porcentajeObjetivo: 75 },
   ];
 
-  test("devuelve los hitos pendientes con objetivo ≤ avance", () => {
+  test("devuelve los hitos pendientes con porcentaje objetivo ≤ avance", () => {
     assert.deepEqual(hitosPorAlcanzar(hitos, 50), [hitos[1]]);
     assert.deepEqual(hitosPorAlcanzar(hitos, 80), [hitos[1], hitos[2]]);
   });
@@ -359,72 +360,113 @@ describe("hitosPorAlcanzar (caso 13)", () => {
 });
 
 describe("validarNuevoHito (caso 14)", () => {
-  const metaCon = (...objetivos) => ({
-    hitos: objetivos.map((objetivo) => ({ objetivo })),
+  const metaCon = (...porcentajesObjetivo) => ({
+    hitos: porcentajesObjetivo.map((porcentajeObjetivo) => ({
+      porcentajeObjetivo,
+    })),
   });
 
   test("un hito válido devuelve null", () => {
-    assert.equal(
+    assert.deepEqual(
       validarNuevoHito(
         metaCon(),
-        { nombre: "Llegar al 50 %", objetivo: 50 },
+        { descripcion: "Llegar al 50 %", porcentajeObjetivo: 50 },
         40,
       ),
       null,
     );
   });
 
-  test("objetivo menor que el avance → error", () => {
-    assert.equal(
-      validarNuevoHito(metaCon(), { nombre: "A", objetivo: 30 }, 40),
-      "El objetivo del hito debe ser mayor que el avance actual (40 %)",
+  test("porcentajeObjetivo menor que el avance → error", () => {
+    assert.deepEqual(
+      validarNuevoHito(
+        metaCon(),
+        { descripcion: "A", porcentajeObjetivo: 30 },
+        40,
+      ),
+      {
+        status: 400,
+        mensaje:
+          "El porcentaje objetivo del hito debe ser mayor que el avance actual (40 %)",
+      },
     );
   });
 
-  test("objetivo igual al avance → error", () => {
-    assert.equal(
-      validarNuevoHito(metaCon(), { nombre: "A", objetivo: 40 }, 40),
-      "El objetivo del hito debe ser mayor que el avance actual (40 %)",
+  test("porcentajeObjetivo igual al avance → error", () => {
+    assert.deepEqual(
+      validarNuevoHito(
+        metaCon(),
+        { descripcion: "A", porcentajeObjetivo: 40 },
+        40,
+      ),
+      {
+        status: 400,
+        mensaje:
+          "El porcentaje objetivo del hito debe ser mayor que el avance actual (40 %)",
+      },
     );
   });
 
   test("sin avance cuenta como 0", () => {
-    assert.equal(
-      validarNuevoHito(metaCon(), { nombre: "A", objetivo: 1 }, null),
+    assert.deepEqual(
+      validarNuevoHito(
+        metaCon(),
+        { descripcion: "A", porcentajeObjetivo: 1 },
+        null,
+      ),
       null,
     );
   });
 
-  test("objetivo repetido → error", () => {
-    assert.equal(
-      validarNuevoHito(metaCon(50), { nombre: "A", objetivo: 50 }, 0),
-      "Ya existe un hito con objetivo 50 %",
+  test("porcentajeObjetivo repetido → 409 (B-24)", () => {
+    assert.deepEqual(
+      validarNuevoHito(
+        metaCon(50),
+        { descripcion: "A", porcentajeObjetivo: 50 },
+        0,
+      ),
+      {
+        status: 409,
+        mensaje: "Ya existe un hito con porcentaje objetivo 50 %",
+      },
     );
   });
 
   test("sexto hito → error", () => {
-    assert.equal(
+    assert.deepEqual(
       validarNuevoHito(
         metaCon(10, 20, 30, 40, 50),
-        { nombre: "A", objetivo: 60 },
+        { descripcion: "A", porcentajeObjetivo: 60 },
         0,
       ),
-      "Una meta admite como máximo 5 hitos",
+      { status: 400, mensaje: "Una meta admite como máximo 5 hitos" },
     );
   });
 
-  test("nombre vacío → error", () => {
-    assert.equal(
-      validarNuevoHito(metaCon(), { nombre: "  ", objetivo: 60 }, 0),
-      "El nombre del hito es obligatorio",
+  test("descripción vacía → error", () => {
+    assert.deepEqual(
+      validarNuevoHito(
+        metaCon(),
+        { descripcion: "  ", porcentajeObjetivo: 60 },
+        0,
+      ),
+      { status: 400, mensaje: "La descripción del hito es obligatoria" },
     );
   });
 
-  for (const objetivo of [0, 101, 2.5, "50"]) {
-    test(`objetivo ${JSON.stringify(objetivo)} → error`, () => {
-      assert.equal(
-        validarNuevoHito(metaCon(), { nombre: "A", objetivo }, 0),
-        "El objetivo del hito debe ser un entero entre 1 y 100",
+  for (const porcentajeObjetivo of [0, 101, 2.5, "50"]) {
+    test(`porcentajeObjetivo ${JSON.stringify(porcentajeObjetivo)} → error`, () => {
+      assert.deepEqual(
+        validarNuevoHito(
+          metaCon(),
+          { descripcion: "A", porcentajeObjetivo },
+          0,
+        ),
+        {
+          status: 400,
+          mensaje:
+            "El porcentaje objetivo del hito debe ser un entero entre 1 y 100",
+        },
       );
     });
   }
@@ -439,4 +481,247 @@ describe("debeArchivarMeta (caso 15)", () => {
     test(`${estado} → false`, () =>
       assert.equal(debeArchivarMeta(estado), false));
   }
+});
+
+describe("calcularProgresoDesde — mejor racha (caso 16)", () => {
+  function rachas(dias) {
+    const { racha, mejorRacha } = calcularProgresoDesde(
+      dias.map((dia) => partida(dia, 30)),
+      [],
+      AHORA,
+    );
+    return { racha, mejorRacha };
+  }
+
+  test("sin partidas → 0", () => {
+    assert.deepEqual(rachas([]), { racha: 0, mejorRacha: 0 });
+  });
+
+  test("una serie pasada de 5 días y la actual de 2 → mejor 5, actual 2", () => {
+    assert.deepEqual(
+      rachas([
+        "2026-10-10",
+        "2026-10-11",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-11-06",
+        "2026-11-07",
+      ]),
+      { racha: 2, mejorRacha: 5 },
+    );
+  });
+
+  test("la mejor puede ser una serie pasada (cruce de mes); si es la actual, coincide con rachaActual", () => {
+    assert.deepEqual(
+      rachas(["2026-10-20", "2026-10-30", "2026-10-31", "2026-11-01"]),
+      { racha: 0, mejorRacha: 3 },
+    );
+    assert.deepEqual(rachas(["2026-11-05", "2026-11-06", "2026-11-07"]), {
+      racha: 3,
+      mejorRacha: 3,
+    });
+  });
+
+  test("varias partidas el mismo día cuentan como un día", () => {
+    assert.deepEqual(rachas(["2026-11-07", "2026-11-07", "2026-11-06"]), {
+      racha: 2,
+      mejorRacha: 2,
+    });
+  });
+
+  test("las partidas futuras no cuentan", () => {
+    assert.deepEqual(
+      rachas(["2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10"]),
+      { racha: 1, mejorRacha: 1 },
+    );
+  });
+});
+
+describe("aProgresoSemanal (caso 17)", () => {
+  const alcanzado25 = new Date("2026-10-20T22:10:00Z");
+  const alcanzado50 = new Date("2026-10-30T22:10:00Z");
+
+  test("con meta: estructura de la spec §5, horas con 1 decimal e hitos ordenados", () => {
+    const metaActiva = {
+      ...meta(5, 4, META_DESDE_OCTUBRE),
+      hitos: [
+        {
+          _id: "h100",
+          descripcion: "Terminar el juego",
+          porcentajeObjetivo: 100,
+        },
+        {
+          _id: "h25",
+          descripcion: "Llegar al 25 %",
+          porcentajeObjetivo: 25,
+          alcanzadoEn: alcanzado25,
+        },
+        {
+          _id: "h50",
+          descripcion: "Llegar al 50 %",
+          porcentajeObjetivo: 50,
+          alcanzadoEn: alcanzado50,
+        },
+      ],
+    };
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde(
+        [
+          partida("2026-11-04", 120, 40),
+          partida("2026-11-05", 50, 55),
+          partida("2026-11-06", 40, 60),
+          partida("2026-11-07", 0, 62),
+        ],
+        [metaActiva],
+        AHORA,
+      ),
+    );
+
+    assert.deepEqual(respuesta.semana, {
+      inicio: "2026-11-02",
+      fin: "2026-11-08",
+    });
+    assert.deepEqual(respuesta.meta, { horasSemanales: 5, diasPorSemana: 4 });
+    assert.equal(respuesta.horasSemana, 3.5); // 210 min
+    assert.equal(respuesta.porcentajeHoras, 70);
+    assert.equal(respuesta.diasJugadosSemana, 4);
+    assert.equal(respuesta.porcentajeDias, 100);
+    assert.equal(respuesta.cumplida, false);
+    assert.equal(respuesta.rachaActual, 4);
+    assert.equal(respuesta.mejorRacha, 4);
+    assert.equal(respuesta.porcentajeAvanceActual, 62);
+    assert.deepEqual(respuesta.hitos, [
+      {
+        _id: "h25",
+        descripcion: "Llegar al 25 %",
+        porcentajeObjetivo: 25,
+        alcanzado: true,
+        alcanzadoEn: alcanzado25,
+      },
+      {
+        _id: "h50",
+        descripcion: "Llegar al 50 %",
+        porcentajeObjetivo: 50,
+        alcanzado: true,
+        alcanzadoEn: alcanzado50,
+      },
+      {
+        _id: "h100",
+        descripcion: "Terminar el juego",
+        porcentajeObjetivo: 100,
+        alcanzado: false,
+        alcanzadoEn: null,
+      },
+    ]);
+    assert.equal(respuesta.ultimas4.length, 4);
+    assert.equal(respuesta.semanasConMeta, 4);
+    assert.equal(respuesta.semanasCumplidas, 0);
+  });
+
+  test("redondea horasSemana a 1 decimal", () => {
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde([partida("2026-11-03", 20)], [], AHORA),
+    );
+    assert.equal(respuesta.horasSemana, 0.3);
+  });
+
+  const metaConHitos = (...hitos) => ({
+    ...meta(5, 4, META_DESDE_OCTUBRE),
+    hitos,
+  });
+
+  test("hito con alcanzadoEn pero avance actual menor → no alcanzado, fecha conservada", () => {
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde(
+        [partida("2026-11-06", 30, 60), partida("2026-11-07", 30, 45)],
+        [
+          metaConHitos({
+            _id: "h50",
+            descripcion: "50",
+            porcentajeObjetivo: 50,
+            alcanzadoEn: alcanzado50,
+          }),
+        ],
+        AHORA,
+      ),
+    );
+    assert.equal(respuesta.hitos[0].alcanzado, false);
+    assert.equal(respuesta.hitos[0].alcanzadoEn, alcanzado50);
+  });
+
+  test("avance igual al objetivo → alcanzado", () => {
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde(
+        [partida("2026-11-07", 30, 50)],
+        [
+          metaConHitos({
+            _id: "h50",
+            descripcion: "50",
+            porcentajeObjetivo: 50,
+          }),
+        ],
+        AHORA,
+      ),
+    );
+    assert.equal(respuesta.hitos[0].alcanzado, true);
+  });
+
+  test("sin partidas → horas, días y rachas en 0 y ningún hito alcanzado", () => {
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde(
+        [],
+        [
+          metaConHitos(
+            {
+              _id: "h25",
+              descripcion: "25",
+              porcentajeObjetivo: 25,
+              alcanzadoEn: alcanzado25,
+            },
+            { _id: "h50", descripcion: "50", porcentajeObjetivo: 50 },
+          ),
+        ],
+        AHORA,
+      ),
+    );
+    assert.equal(respuesta.horasSemana, 0);
+    assert.equal(respuesta.diasJugadosSemana, 0);
+    assert.equal(respuesta.rachaActual, 0);
+    assert.equal(respuesta.mejorRacha, 0);
+    assert.equal(respuesta.porcentajeAvanceActual, null);
+    assert.ok(respuesta.hitos.every((hito) => hito.alcanzado === false));
+    assert.equal(respuesta.hitos[0].alcanzadoEn, alcanzado25);
+  });
+
+  test("sin meta: campos de meta en null, sin hitos y el resto calculado", () => {
+    const respuesta = aProgresoSemanal(
+      calcularProgresoDesde(
+        [partida("2026-11-06", 60), partida("2026-11-07", 30)],
+        [],
+        AHORA,
+      ),
+    );
+    assert.deepEqual(respuesta, {
+      semana: { inicio: "2026-11-02", fin: "2026-11-08" },
+      meta: null,
+      horasSemana: 1.5,
+      porcentajeHoras: null,
+      diasJugadosSemana: 2,
+      porcentajeDias: null,
+      cumplida: null,
+      rachaActual: 2,
+      mejorRacha: 2,
+      porcentajeAvanceActual: null,
+      hitos: [],
+      ultimas4: [
+        { inicio: "2026-10-05", fin: "2026-10-11", estado: "sin_meta" },
+        { inicio: "2026-10-12", fin: "2026-10-18", estado: "sin_meta" },
+        { inicio: "2026-10-19", fin: "2026-10-25", estado: "sin_meta" },
+        { inicio: "2026-10-26", fin: "2026-11-01", estado: "sin_meta" },
+      ],
+      semanasCumplidas: 0,
+      semanasConMeta: 0,
+    });
+  });
 });

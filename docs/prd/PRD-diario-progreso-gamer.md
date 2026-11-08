@@ -94,7 +94,7 @@ Cómo se mide en E2: el detalle del juego muestra «X de N semanas con meta cump
 | H-3 | **Partida que cruza la medianoche:** ¿a qué día pertenece? | **Al día en que empezó**, que es el que la persona elige al registrarla. Cuenta entera en ese día, porque la partida no guarda hora de inicio ni de fin. | Partida del martes de 23:00 a 01:00 → 2 h el martes. |
 | H-4 | **Cambio de meta a mitad de semana:** ¿el porcentaje de la semana se calcula con la meta nueva o con la anterior? | **Con la meta nueva.** Cada semana se evalúa con la meta que estaba vigente al cerrarse (domingo); para la semana en curso, es la meta actual. La meta anterior no se pierde: se guarda para evaluar las semanas en que estuvo vigente. | Meta de 5 h; el miércoles se cambia a 8 h; con 6 h jugadas → «6 de 8 h · 75 %». |
 | H-5 | **Meta superada:** si se juegan 7 horas con una meta de 5, ¿el porcentaje es 140 % o se limita a 100 %? | **140 %**, el valor real y sin límite. La barra de progreso se llena hasta el 100 % y no se sale. | «7 de 5 h · 140 %» con la barra llena. |
-| H-6 | **Hito ya alcanzado:** si después se registra una partida con menos avance, ¿el hito deja de estar alcanzado? | **No.** Una vez alcanzado, queda alcanzado con su fecha original, aunque el avance baje o se borre la partida que lo alcanzó. | Hito «50 %» alcanzado el 30/10; el 2/11 se registra un 45 % → sigue «Alcanzado el 30 oct 2026». |
+| H-6 | **Hito ya alcanzado:** si después se registra una partida con menos avance, ¿el hito deja de estar alcanzado? | **Sí.** El enunciado fija que un hito está alcanzado cuando `porcentajeAvanceActual ≥ porcentajeObjetivo` (sin partidas, ninguno), así que el estado **se calcula** con el avance actual. Lo que se guarda es la fecha de la primera vez que se alcanzó (`alcanzadoEn`), como historial: no se borra aunque el avance baje y se vuelve a mostrar si se alcanza de nuevo. | Hito «50 %» alcanzado el 30/10; el 2/11 se registra un 45 % → «Pendiente»; el 5/11 un 60 % → «Alcanzado el 30 oct 2026». |
 | H-7 | **Videojuego completado o abandonado:** ¿puede tener meta activa? | **No.** Al pasar a completado o abandonado, su meta se archiva sola y no se puede fijar otra mientras siga en ese estado. Si vuelve a «jugando» o «pausado», la meta anterior no se recupera, pero se puede fijar una nueva. «Pausado» no afecta a la meta. | Se marca «Completado» → la sección muestra el formulario deshabilitado con el motivo. |
 | H-8 | **Eliminar un videojuego con meta:** ¿qué pasa con su meta y sus hitos? | **Se eliminan también** su meta actual, sus metas anteriores y todos sus hitos. La confirmación de borrado lo avisa. | «¿Seguro que quieres eliminar "Hades"? También se borrarán su meta semanal y sus hitos.» |
 
@@ -107,16 +107,16 @@ Cómo se mide en E2: el detalle del juego muestra «X de N semanas con meta cump
 | RN-07 | Cambiar la meta no la sobrescribe: la anterior se guarda en el historial con sus fechas de vigencia. Guardar los mismos valores no crea una meta nueva. |
 | RN-08 | Una semana se **cumple** solo si se alcanzan **las horas y los días** de la meta. |
 | RN-09 | **Últimas 4 semanas:** son las 4 semanas completas anteriores a la actual. Una semana sin meta vigente aparece como «Sin meta» y no cuenta en el total N. |
-| RN-10 | Una meta tiene **como máximo 5 hitos**. Cada hito tiene un nombre y un objetivo de avance (%). No puede haber dos hitos con el mismo objetivo. |
-| RN-11 | No se puede crear un hito cuyo objetivo sea **menor o igual** que el avance actual del juego, porque ya estaría alcanzado. |
-| RN-12 | Un hito se alcanza cuando el avance actual del juego llega a su objetivo. Al cambiar la meta, los hitos pasan a la nueva con su estado y su fecha de alcance. |
+| RN-10 | Una meta tiene **como máximo 5 hitos**. Cada hito tiene una descripción y un porcentaje objetivo de avance. No puede haber dos hitos con el mismo porcentaje objetivo. |
+| RN-11 | No se puede crear un hito cuyo porcentaje objetivo sea **menor o igual** que el avance actual del juego, porque ya estaría alcanzado. |
+| RN-12 | Un hito se alcanza cuando el avance actual del juego llega a su porcentaje objetivo. Al cambiar la meta, los hitos pasan a la nueva con su estado y su fecha de alcance. |
 
 ## 8. Supuestos (pendientes de validar con la persona usuaria)
 
 - S-1: una partida de 0 minutos cuenta como día jugado y para la racha.
 - S-2: las partidas con fecha futura no cuentan en el progreso ni en la racha hasta que llegue su día.
-- S-3: límites razonables para la meta: más de 0 y como máximo 168 horas por semana (las horas de una semana), y de 1 a 7 días por semana, en números enteros.
-- S-4: el objetivo de un hito es un porcentaje entero de 1 a 100.
+- S-3: límites razonables para la meta: más de 0 y como máximo 100 horas por semana (el límite que fija el enunciado del proyecto, muy por encima de cualquier meta realista), y de 1 a 7 días por semana, en números enteros.
+- S-4: el porcentaje objetivo de un hito es un número **entero** de 1 a 100. El enunciado solo pide un número entre 1 y 100; se exige entero porque el avance se registra en porcentajes enteros y un hito de «52,5 %» no aporta nada a la persona.
 - S-5: las semanas en las que el juego estuvo en «pausado» con meta activa cuentan como semanas con meta (normalmente, no cumplidas).
 - S-6: la persona registra sus partidas con la fecha real en que las jugó.
 
