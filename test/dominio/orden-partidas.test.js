@@ -3,6 +3,8 @@ const assert = require("node:assert/strict");
 const {
   ordenarPartidasRecientes,
   avanceActual,
+  avanceActualHastaHoy,
+  partidasHastaHoy,
 } = require("../../backend/src/dominio/partidas");
 
 function partida(dia, creadaA, porcentajeAvance) {
@@ -63,5 +65,35 @@ describe("avanceActual", () => {
       avanceActual([partida("2026-11-03", "2026-11-03T10:00Z")]),
       null,
     );
+  });
+});
+
+describe("avanceActualHastaHoy (B-07)", () => {
+  const hoy = "2026-11-07";
+
+  test("ignora una partida con fecha futura aunque sea la más reciente", () => {
+    const pasada = partida("2026-11-05", "2026-11-05T10:00Z", 40);
+    const futura = partida("2026-11-08", "2026-11-06T10:00Z", 80);
+    assert.equal(avanceActualHastaHoy([pasada, futura], hoy), 40);
+  });
+
+  test("una partida de hoy sí cuenta", () => {
+    const deHoy = partida(hoy, "2026-11-07T10:00Z", 60);
+    assert.equal(avanceActualHastaHoy([deHoy], hoy), 60);
+  });
+
+  test("solo partidas futuras → null", () => {
+    const futura = partida("2026-11-09", "2026-11-06T10:00Z", 80);
+    assert.equal(avanceActualHastaHoy([futura], hoy), null);
+  });
+
+  test("partidasHastaHoy conserva las de hoy y anteriores", () => {
+    const ayer = partida("2026-11-06", "2026-11-06T10:00Z", 10);
+    const deHoy = partida(hoy, "2026-11-07T10:00Z", 20);
+    const futura = partida("2026-11-08", "2026-11-07T10:00Z", 30);
+    assert.deepEqual(partidasHastaHoy([ayer, deHoy, futura], hoy), [
+      ayer,
+      deHoy,
+    ]);
   });
 });

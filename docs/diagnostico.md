@@ -32,12 +32,13 @@ Alcance de la revisión:
   Corresponde a la épica E1 del [backlog](backlog/epicas.md).
 - **Pruebas automatizadas:** `node:test` + `tsx`, en `test/` (raíz), lanzadas con `cd backend && npm test`.
   - **Backend:** 45 tests pasan y 0 fallan (`test/model/partida.test.js`: 16; `test/model/videojuego.test.js`: 29). Solo validan esquemas de Mongoose con `validateSync()`, sin base de datos.
-  - **Omitidas:** las 3 suites de `test/dominio/fechas.test.js` (`diaCalendario`, `interpretarFecha`, `esFechaFutura`), porque `backend/src/dominio/fechas.ts` todavía no existe (se crea en E2-T01).
+  - **Omitidas (en el momento del diagnóstico):** las 3 suites de `test/dominio/fechas.test.js`, porque `backend/src/dominio/fechas.ts` aún no existía. Se resolvió en E2-T01.
+  - **Tras implementar el backend de E2 (2026-11-08):** 159 tests pasan y 0 fallan; se añaden `test/dominio/{fechas,progreso,orden-partidas}.test.js`, `test/model/meta.test.js` y `test/middlewares/errorHandler.test.js`.
   - **Frontend:** `npm test` (`node --test`) ejecuta 0 tests.
 - **Video (2:06, 1920×1020, app en producción):** muestra lista, detalle con resumen, registrar partida, eliminar partida, crear juego, editar juego, eliminar juego (sin partidas) y filtros por plataforma y estado. **Revela un bug visible:** se registra una partida con fecha `10/21/2026` y la lista la muestra como **«20 oct 2026»**.
 - **Rama:** `feature/e2-metas-rachas` va 2 commits por delante de `main` (`ace480a`), los dos de documentación, configuración y tests.
-  - Las specs de E2 ya están en `docs/specs/`, pero `docs/` aún no está versionado.
-  - La implementación de E2 no ha empezado.
+  - En el momento del diagnóstico, las specs de E2 no estaban versionadas y la implementación no había empezado.
+  - **Actualización 2026-11-08:** `docs/` ya está versionado y el backend de E2 está implementado según la [spec backend](specs/E2-backend-meta-y-progreso-semanal.md) (tickets E2-T01, T03–T08).
 - **Veredicto:**
   - Entregable funcional y bien estructurado, con 2 bugs de datos reales (fechas y partidas huérfanas).
   - Tiene una base de pruebas, pero solo cubre los modelos, así que no detecta ninguno de los bugs conocidos.

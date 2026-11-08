@@ -1,6 +1,6 @@
 # Spec backend — E2: Meta y progreso semanal
 
-Fecha: 2026-11-07 · Estado: lista para implementar
+Fecha: 2026-11-07 · Estado: implementada (2026-11-08)
 Documentos relacionados: [PRD](../prd/PRD-diario-progreso-gamer.md) · [historias y tickets](../backlog/E2-metas-y-rachas.md) · [spec frontend](E2-frontend-meta-semanal.md) · [diagnóstico](../diagnostico.md)
 Tickets: E2-T01, E2-T03, E2-T04, E2-T05, E2-T06, E2-T07, E2-T08 (y la parte backend de E2-T14)
 
@@ -101,7 +101,7 @@ export interface IMeta extends Document {
 | `calcularProgresoDesde(partidas, metas, ahora): Progreso` | El algoritmo de §4.3, sin acceso a la base de datos. |
 | `aProgresoSemanal(progreso): ProgresoSemanal` | Convierte el `Progreso` interno en la respuesta de §5 (B-23): `horasSemana` redondeada a 1 decimal y hitos ordenados por `porcentajeObjetivo` asc. con `_id`, `alcanzado = porcentajeAvanceActual !== null && porcentajeAvanceActual ≥ porcentajeObjetivo` y `alcanzadoEn` (o `null`). |
 | `hitosPorAlcanzar(hitos, avance): IHito[]` | Hitos sin `alcanzadoEn` con `porcentajeObjetivo ≤ avance` (B-15). |
-| `validarNuevoHito(meta, { descripcion, porcentajeObjetivo }, avance): string \| null` | El mensaje de error de B-13/B-14, o `null` si el hito es válido. |
+| `validarNuevoHito(meta, { descripcion, porcentajeObjetivo }, avance): { status, mensaje } \| null` | El error de B-13/B-14 (`status: 400`) o de porcentaje objetivo repetido (`status: 409`, B-24), o `null` si el hito es válido. |
 | `debeArchivarMeta(estado): boolean` | `true` para `completado` y `abandonado` (B-18). |
 
 ### 4.2 Servicio — `backend/src/services/meta.service.ts` (E2-T06)
@@ -113,9 +113,9 @@ Todas las funciones lanzan `ApiError(404)` si el videojuego no existe; para ello
 | `obtenerMetaActiva(videojuegoId)` | Devuelve la meta activa o `ApiError(404, "El videojuego no tiene una meta activa")`. |
 | `fijarMeta(videojuegoId, { horasSemanales, diasPorSemana })` | Juego `completado` o `abandonado` → `ApiError(400)` (B-18). Sin meta activa → la crea (`creada: true`). Mismos valores → la devuelve sin cambios (`creada: false`, B-04). Valores distintos → B-03 (`creada: true`). Devuelve `{ meta, creada }`. |
 | `archivarMeta(videojuegoId, { siExiste = false } = {})` | Pone `activa = false` y `vigenteHasta = ahora`. Si no hay meta activa: 404, o no hace nada si `siExiste` es `true`. |
-| `agregarHito(videojuegoId, { descripcion, porcentajeObjetivo })` | Valida con `validarNuevoHito` → `ApiError(400)`. Devuelve la meta. |
+| `agregarHito(videojuegoId, { descripcion, porcentajeObjetivo })` | Valida con `validarNuevoHito` → `ApiError(status)` (400 o 409). Devuelve la meta. |
 | `eliminarHito(videojuegoId, hitoId)` | 404 si no hay meta activa o si no existe el hito. Devuelve la meta. |
-| `actualizarHitosAlcanzados(videojuegoId)` | Calcula `porcentajeAvanceActual` (B-16) y pone `alcanzadoEn = ahora` en `hitosPorAlcanzar`. Sin meta activa o sin avance, no hace nada. |
+| `actualizarHitosAlcanzados(videojuegoId)` | Calcula `porcentajeAvanceActual` (B-16) sin partidas futuras (B-07) y pone `alcanzadoEn = ahora` en `hitosPorAlcanzar`. Sin meta activa o sin avance, no hace nada. |
 | `calcularProgreso(videojuegoId, ahora = new Date())` | Carga las partidas y las metas, llama a `calcularProgresoDesde` y devuelve `aProgresoSemanal(...)`. |
 
 **Integración con partidas** (`partida.service.ts`, E2-T03 y E2-T07):
@@ -271,7 +271,7 @@ Se escriben con `node:test` en `test/` y se lanzan con `cd backend && npm test`.
   16. `mejorRacha` (B-22): sin partidas → 0; una serie pasada de 5 días y la actual de 2 → 5 y `rachaActual = 2`; la serie actual es la mejor → igual a `rachaActual`; partidas futuras no cuentan;
   17. `aProgresoSemanal` (B-23): con meta → campos del ejemplo de §5, `horasSemana` con 1 decimal (20 min → 0,3) y hitos ordenados con `alcanzado`; hito con `alcanzadoEn` pero avance actual menor → `alcanzado: false` y fecha conservada; avance = objetivo → `alcanzado: true`; sin partidas → ningún hito alcanzado; sin meta → `meta`, `porcentajeHoras`, `porcentajeDias` y `cumplida` en `null`, `hitos: []` y horas, días y rachas calculados.
 - `test/middlewares/errorHandler.test.js`: `ApiError(409)` → 409; error E11000 de MongoDB → 409 con el mensaje de §5 (B-24); `CastError` → 400.
-- `test/dominio/orden-partidas.test.js`: la función de orden / avance actual con dos partidas del mismo día devuelve la creada más tarde (B-16).
+- `test/dominio/orden-partidas.test.js`: la función de orden / avance actual con dos partidas del mismo día devuelve la creada más tarde (B-16), y `avanceActualHastaHoy` ignora una partida con fecha futura (B-07).
 
 ## 7. Criterio → verificación
 
