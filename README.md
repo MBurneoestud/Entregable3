@@ -103,6 +103,12 @@ Las rutas usan el prefijo `/api`.
 | `POST` | `/api/partidas` | Registra una partida; valida que el videojuego exista. |
 | `PUT` | `/api/partidas/:id` | Actualiza una partida. |
 | `DELETE` | `/api/partidas/:id` | Elimina una partida. |
+| `GET` | `/api/videojuegos/:id/meta` | Obtiene la meta semanal activa (`{ meta }`); 404 si no hay. |
+| `PUT` | `/api/videojuegos/:id/meta` | Fija la meta con `{ "horasPorSemana": 5, "diasPorSemana": 3 }`. 201 si crea una meta (la anterior queda archivada con sus hitos copiados), 200 si los valores no cambian. 400 en juegos completados o abandonados. |
+| `DELETE` | `/api/videojuegos/:id/meta` | Quita (archiva) la meta activa; 204. |
+| `POST` | `/api/videojuegos/:id/meta/hitos` | Añade un hito con `{ "nombre": "Llegar al 50 %", "objetivo": 50 }` (máx. 5, objetivo entero 1–100, mayor que el avance actual); 201. |
+| `DELETE` | `/api/videojuegos/:id/meta/hitos/:hitoId` | Elimina un hito de la meta activa; 200 con la meta. |
+| `GET` | `/api/videojuegos/:id/progreso` | Progreso de la semana actual (lunes a domingo, hora de Ecuador), racha de días seguidos, avance actual y estado de las últimas 4 semanas completas. |
 
 ### Códigos de error
 
@@ -141,6 +147,15 @@ npm run dev
 ```
 
 La API queda disponible en `http://localhost:3000`; su comprobación de salud está en `http://localhost:3000/api/salud`.
+
+### Tests
+
+Los tests viven en `test/` (raíz del repositorio), usan `node:test` y se lanzan desde `backend/`. No necesitan conexión a MongoDB:
+
+```powershell
+cd backend
+npm test
+```
 
 ### Frontend
 
