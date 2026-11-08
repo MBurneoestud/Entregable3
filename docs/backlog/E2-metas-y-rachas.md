@@ -9,8 +9,8 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 | Historia | Título | Huecos del PRD | Tickets |
 |---|---|---|---|
 | E2-H0 | Ver cada partida en el día que elegí (habilitadora) | H-3 | T01, T02 |
-| E2-H1 | Fijar o cambiar la meta semanal | H-4 | T04, T06, T08, T09, T10 |
-| E2-H2 | Quitar la meta semanal | — | T06, T08, T10 |
+| E2-H1 | Fijar o cambiar la meta semanal | H-4 | T04, T06, T08, T09, T10, T15 |
+| E2-H2 | Quitar la meta semanal | — | T06, T08, T10, T15 |
 | E2-H3 | Meta según el estado del juego | H-7 | T06, T07, T10 |
 | E2-H4 | Eliminar un videojuego con meta | H-8 | T07, T13 |
 | E2-H5 | Ver el progreso de la semana actual | H-2, H-3, H-4, H-5 | T05, T08, T10 |
@@ -50,6 +50,8 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 - **H1-C3** · **DADO** una meta con hitos **CUANDO** cambio la meta **ENTONCES** la nueva meta conserva los mismos hitos, con su estado y su fecha de alcance.
 - **H1-C4** · **DADO** un juego con meta de 5 h y 3 días **CUANDO** guardo otra vez 5 h y 3 días **ENTONCES** no cambia nada y no se crea una meta nueva en el historial.
 - **H1-C5** · **DADO** el formulario de meta **CUANDO** intento guardar 0 horas, más de 100 horas, 0 días, 8 días o días con decimales **ENTONCES** veo un mensaje en español que explica el límite y la meta no se guarda.
+- **H1-C6** · **DADO** un juego que ya tiene una meta activa **CUANDO** intento crear otra meta nueva para ese juego **ENTONCES** se rechaza con un mensaje que explica que primero hay que cambiar o desactivar la actual, y la meta existente sigue igual.
+- **H1-C7** · **DADO** un juego cuya meta cambié una vez **CUANDO** consulto sus metas **ENTONCES** veo las dos, la activa primero y la anterior marcada como inactiva.
 
 ### E2-H2 — Quitar la meta semanal
 
@@ -58,6 +60,7 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 - **H2-C1** · **DADO** un juego con meta **CUANDO** la quito y confirmo **ENTONCES** la sección vuelve al estado «sin meta», con la invitación a fijar una.
 - **H2-C2** · **DADO** que quité la meta de un juego **CUANDO** miro sus últimas 4 semanas **ENTONCES** las semanas completas en que la meta estuvo vigente conservan su estado (cumplida o no cumplida).
 - **H2-C3** · **DADO** un juego sin meta **CUANDO** abro su detalle **ENTONCES** no veo progreso semanal, pero sí la racha.
+- **H2-C4** · **DADO** una meta que ya desactivé **CUANDO** intento desactivarla o modificarla otra vez **ENTONCES** se rechaza con un mensaje que lo explica, y la meta y sus hitos siguen guardados en el historial.
 
 ### E2-H3 — Meta según el estado del juego
 
@@ -164,8 +167,11 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 | E2-T12 | Funcionalidad | Hitos en la interfaz | H7, H8 | Frontend | T10 |
 | E2-T13 | Funcionalidad | Aviso de borrado de meta e hitos al eliminar un videojuego | H4 | Frontend | T07 |
 | E2-T14 | Documentación | Cierre de E2: README, diagnóstico y verificación manual completa | Todas | Ambas | T01–T13 |
+| E2-T15 | Funcionalidad | CRUD REST de Meta con 409 por segunda meta activa | H1, H2 | Backend | T06, T08 |
+| E2-T16 | Chore | Limpiar `.gitignore` (diagnóstico #6) | — | — | — |
+| E2-T17 | Documentación | Auditoría por criterio, bitácora del agente y deuda técnica | Todas | Ambas | T15, T16 |
 
-Orden de trabajo: `T01, T02, T03, T04` (en paralelo) → `T05` → `T06` → `T07, T08` → `T09` → `T10, T13` → `T11, T12` → `T14`.
+Orden de trabajo: `T01, T02, T03, T04` (en paralelo) → `T05` → `T06` → `T07, T08` → `T09` → `T10, T13` → `T11, T12` → `T14` → `T15, T16` → `T17`.
 
 ### Detalle de los tickets
 
@@ -267,3 +273,62 @@ Además de la Definition of Done común, cada ticket tiene su DoD específica.
   - `docs/diagnostico.md` marca #1, #4, #14 y #17 como resueltos.
   - Todas las filas de «criterio → verificación» de las dos specs están comprobadas.
   - `npm test` y `npm run build` pasan en backend y frontend.
+
+#### E2-T15 · Funcionalidad · CRUD REST de Meta
+- **Historias:** H1, H2 · **Depende de:** T06, T08
+- **DoD:**
+  - Las rutas `POST`/`GET /api/videojuegos/:id/metas`, `GET`/`PATCH /api/metas/:metaId` y `PATCH /api/metas/:metaId/desactivar` cumplen las reglas B-25 a B-29 de la spec del backend.
+  - Crear una segunda meta activa devuelve 409 con el mensaje exacto y no modifica la existente.
+  - Las reglas viven en funciones puras de `backend/src/dominio/metas.ts`, con un test por regla en `test/dominio/metas.test.js`.
+  - Las rutas `/meta` que usa la interfaz siguen funcionando igual.
+  - Verificación manual de H1-C6, H1-C7 y H2-C4 contra la API en local.
+
+#### E2-T16 · Chore · Limpiar `.gitignore`
+- **Historias:** — (deuda técnica, diagnóstico #6) · **Depende de:** —
+- **DoD:**
+  - `.gitignore` solo contiene patrones; no quedan las líneas del heredoc.
+  - `git check-ignore -v` confirma que `.env` está ignorado y `.env.example` no.
+
+#### E2-T17 · Documentación · Auditoría, bitácora y deuda técnica
+- **Historias:** todas · **Depende de:** T15, T16
+- **DoD:**
+  - `docs/AUDITORIA.md` tiene una fila por criterio de cada spec, con cómo se verificó, el resultado y la evidencia.
+  - `docs/bitacora-agente.md` recoge de 5 a 8 momentos clave del trabajo con el agente.
+  - Este backlog tiene una sección «Deuda técnica» con lo pagado y lo diferido, cada problema con su motivo.
+
+---
+
+<a id="deuda-tecnica"></a>
+
+## Deuda técnica
+
+Origen: la tabla de problemas de [`docs/diagnostico.md`](../diagnostico.md). Cada problema pagado recorre el ciclo completo: **criterio → test → código → verificación**.
+
+### Pagada en E2
+
+| # diag. | Problema | Criterio | Test | Código | Verificación |
+|---|---|---|---|---|---|
+| 1 | La fecha de la partida se muestra un día antes | H0-C1 (y B-06) | `test/frontend/formato.test.js` (`formatearFecha("2026-10-21T00:00:00.000Z")` → «21 oct 2026») y `test/dominio/fechas.test.js` | E2-T01 `backend/src/dominio/fechas.ts` · E2-T02 `frontend/src/utils/formato.ts` | `npm test` en verde; partida del 21/10 vista como «21 oct 2026» en la lista y el detalle |
+| 4 | Avance actual ambiguo con dos partidas el mismo día | H8-C4 (B-16) | `test/dominio/orden-partidas.test.js` («con dos partidas el mismo día devuelve el avance de la creada más tarde») | E2-T03 `backend/src/dominio/partidas.ts` (`ORDEN_RECIENTES`, `avanceActual`) | `npm test` en verde; `GET /resumen` y `GET /progreso-semanal` coinciden |
+| — (B-07) | Partidas con fecha futura contaban para el avance actual | H6-C6 (B-07) | `test/dominio/orden-partidas.test.js` (`avanceActualHastaHoy`) y `progreso.test.js` caso 12 | `798de52` `avanceActualHastaHoy` en `partidas.ts` | `npm test` en verde (`1a168f7`) |
+| 6 | `.gitignore` con las líneas del heredoc | DoD de E2-T16 | `git check-ignore -v backend/.env` (ignorado) y `backend/.env.example` (no ignorado) | E2-T16 `.gitignore` | Comprobado el 2026-11-08 |
+| 16 | El hook de Prettier no hacía nada | Diagnóstico #16 | Prueba del hook: el agente edita un `.ts` y el archivo queda formateado | `6cb3b0a` (`prettier` en el `package.json` raíz, extensiones `.ts/.tsx`) | El hook reformateó `meta.service.ts` y `dominio/metas.ts` en E2-T15 |
+
+También se resolvieron dentro de E2, porque bloqueaban la épica: #14 (specs versionadas antes del código), #17 (test de fechas alineado con D-1) y #18 (cómo ejecutar los tests, en el README).
+
+### Diferida
+
+| # diag. | Problema | Por qué se difiere |
+|---|---|---|
+| 2 | Al eliminar un videojuego sus partidas quedan huérfanas | No afecta a E2: el progreso se calcula por videojuego existente, y E2 sí borra metas e hitos (H-8). Borrar partidas cambia el comportamiento de E1 y necesita decisión de producto (PRD P-2). |
+| 3 | No hay tests de servicios, controladores ni rutas | Requiere una base de datos de pruebas (p. ej. `mongodb-memory-server`) y es trabajo de E1. E2 concentra su lógica en funciones puras probadas sin BD. |
+| 5 | Video de 68 MB versionado en Git | Sacarlo exige reescribir el historial o migrar a Git LFS, con riesgo para la entrega; no afecta al código. |
+| 7 | El video no cubre errores, recarga de rutas profundas ni algunos filtros | Es evidencia de E1; E2 aporta su propia evidencia en `docs/AUDITORIA.md`. |
+| 8 | README y comentarios desalineados (filtro de partidas, rewrite de Render, `cors()`) | Documentación de E1 sin impacto en E2; el README solo se actualizó en lo que toca a E2 (E2-T14, E2-T15). |
+| 9 | Los logros se actualizan por índice, sin `_id` | Cambiarlo rompe la ruta `PATCH /logros/:indiceLogro` y un test existente; el riesgo real es bajo con un solo usuario. Los hitos de E2 ya usan `_id`. |
+| 10 | `PUT` de videojuego y partida pasa `req.body` crudo | Afecta a endpoints de E1; los endpoints de E2 copian solo los campos permitidos (B-19). |
+| 11 | Código duplicado en el frontend (`manejarRespuesta`, etiquetas) | Refactor sin valor visible; solo se unificó `formatearFecha`, que causaba el #1. |
+| 12 | `PORT` sin validar, `.env.example` sin `PORT`, `cerrarConexionDB` sin uso | Render inyecta `PORT`; no hay fallo observable. |
+| 13 | Texto «No se pudieron completar las partidas» | Cosmético y fuera de las pantallas de E2. |
+| 15 | `npm test` del frontend ejecuta 0 tests | Montar un runner de componentes (Vitest + Testing Library) es una inversión aparte; las utilidades del frontend se prueban desde `test/frontend/`. |
+| 19 | Tests en JS con `require` en un proyecto TS | Migrarlos a `.test.ts` mezclaría dos estilos a mitad de la épica; se hará cuando se amplíe la suite. |

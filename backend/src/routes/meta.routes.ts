@@ -10,3 +10,7 @@ metaRouter.delete("/meta", metaController.quitar);
 metaRouter.post("/meta/hitos", metaController.agregarHito);
 metaRouter.delete("/meta/hitos/:hitoId", metaController.eliminarHito);
 metaRouter.get("/progreso-semanal", metaController.obtenerProgreso);
+
+// CRUD REST del recurso Meta (E2-T15, spec B-25 y B-26).
+metaRouter.post("/metas", metaController.crear);
+metaRouter.get("/metas", metaController.listar);

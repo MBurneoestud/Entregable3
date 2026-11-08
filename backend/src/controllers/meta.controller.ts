@@ -95,3 +95,79 @@ export async function obtenerProgreso(
     next(error);
   }
 }
+
+// ---- CRUD REST del recurso Meta (E2-T15, spec B-25 a B-29) ----
+
+export async function crear(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { horasSemanales, diasPorSemana } = cuerpo(req);
+    const meta = await metaService.crearMeta(req.params.id, {
+      horasSemanales,
+      diasPorSemana,
+    });
+    res.status(201).json({ meta });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listar(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const metas = await metaService.listarMetas(req.params.id);
+    res.json({ metas });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function obtenerPorId(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const meta = await metaService.obtenerMetaPorId(req.params.metaId);
+    res.json({ meta });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function actualizar(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    // B-19 y B-28: solo los dos campos permitidos; los omitidos quedan undefined.
+    const { horasSemanales, diasPorSemana } = cuerpo(req);
+    const { meta, creada } = await metaService.actualizarMeta(
+      req.params.metaId,
+      { horasSemanales, diasPorSemana },
+    );
+    res.status(creada ? 201 : 200).json({ meta });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function desactivar(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const meta = await metaService.desactivarMetaPorId(req.params.metaId);
+    res.json({ meta });
+  } catch (error) {
+    next(error);
+  }
+}

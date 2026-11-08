@@ -11,19 +11,24 @@ import { avanceActualHastaHoy } from "../dominio/partidas";
 import {
   aProgresoSemanal,
   calcularProgresoDesde,
-  debeArchivarMeta,
   hitosPorAlcanzar,
   ProgresoSemanal,
   validarNuevoHito,
 } from "../dominio/progreso";
 import {
-  diasValidos,
-  horasValidas,
-  IMeta,
-  Meta,
-  MENSAJES_META,
-} from "../models/meta.model";
+  CifrasMeta,
+  combinarCambiosMeta,
+  ErrorMeta,
+  MENSAJES_CRUD_META,
+  validarCreacionMeta,
+  validarDatosMeta,
+  validarDesactivacionMeta,
+  validarIdMeta,
+  validarModificacionMeta,
+} from "../dominio/metas";
+import { IMeta, Meta } from "../models/meta.model";
 import { Partida } from "../models/partida.model";
+import { EstadoVideojuego } from "../models/videojuego.model";
 // Import circular (videojuego.service → partida.service → meta.service → videojuego.service):
 // es seguro porque solo se usa dentro de funciones, nunca al cargar el módulo.
 import { buscarVideojuegoPorId } from "./videojuego.service";
@@ -63,23 +68,42 @@ export async function obtenerMetaActiva(videojuegoId: string): Promise<IMeta> {
   return buscarMetaActivaOFallar(videojuegoId);
 }
 
+/** Lanza el error de una regla pura de `dominio/metas.ts` si la hay. */
+function lanzarSiError(error: ErrorMeta | null): void {
+  if (error) {
+    throw new ApiError(error.status, error.mensaje);
+  }
+}
+
+/** Valida las cifras (B-02) y el estado del juego (B-18) ya leído de la BD. */
+function cifrasValidadas(
+  datos: DatosMeta,
+  estadoJuego: EstadoVideojuego | undefined,
+): CifrasMeta {
+  lanzarSiError(validarDatosMeta(datos, estadoJuego));
+  return datos as CifrasMeta;
+}
+
 export async function fijarMeta(
   videojuegoId: string,
-  { horasSemanales, diasPorSemana }: DatosMeta,
+  datos: DatosMeta,
 ): Promise<{ meta: IMeta; creada: boolean }> {
   const videojuego = await buscarVideojuegoPorId(videojuegoId);
-  if (!horasValidas(horasSemanales)) {
-    throw new ApiError(400, MENSAJES_META.horas);
-  }
-  if (!diasValidos(diasPorSemana)) {
-    throw new ApiError(400, MENSAJES_META.dias);
-  }
-  if (debeArchivarMeta(videojuego.estado)) {
-    throw new ApiError(400, MENSAJES_META.juegoCerrado);
-  }
-
-  const ahora = new Date();
+  const cifras = cifrasValidadas(datos, videojuego.estado);
   const actual = await buscarMetaActiva(videojuegoId);
+  return reemplazarMeta(videojuegoId, actual, cifras);
+}
+
+/**
+ * B-03 / B-04: si las cifras cambian, archiva la meta activa y crea una nueva con
+ * sus hitos; si no cambian, la devuelve tal cual. Lo comparten `PUT /meta` y `PATCH /api/metas/:metaId`.
+ */
+async function reemplazarMeta(
+  videojuegoId: string,
+  actual: IMeta | null,
+  { horasSemanales, diasPorSemana }: CifrasMeta,
+): Promise<{ meta: IMeta; creada: boolean }> {
+  const ahora = new Date();
 
   if (
     actual &&
@@ -185,6 +209,78 @@ export async function actualizarHitosAlcanzados(
     hito.alcanzadoEn = ahora;
   }
   await meta.save();
+}
+
+// ---- CRUD REST del recurso Meta (E2-T15, spec B-25 a B-29) ----
+
+/** B-25: crea la meta activa; 409 si ya hay una, sin tocar la existente. */
+export async function crearMeta(
+  videojuegoId: string,
+  datos: DatosMeta,
+): Promise<IMeta> {
+  const videojuego = await buscarVideojuegoPorId(videojuegoId);
+  const { horasSemanales, diasPorSemana } = cifrasValidadas(
+    datos,
+    videojuego.estado,
+  );
+  lanzarSiError(
+    validarCreacionMeta(Boolean(await buscarMetaActiva(videojuegoId))),
+  );
+  // Si otra petición crea una meta activa entre la comprobación y el create, el
+  // índice único parcial (B-01) lanza E11000 y errorHandler responde 409 (B-24).
+  return Meta.create({
+    videojuego: videojuegoId,
+    horasSemanales,
+    diasPorSemana,
+    activa: true,
+    vigenteDesde: new Date(),
+    hitos: [],
+  });
+}
+
+/** B-26: historial completo del videojuego, la más reciente primero. */
+export async function listarMetas(videojuegoId: string): Promise<IMeta[]> {
+  await buscarVideojuegoPorId(videojuegoId);
+  return Meta.find({ videojuego: videojuegoId }).sort({ vigenteDesde: -1 });
+}
+
+async function buscarMetaPorIdOFallar(metaId: string): Promise<IMeta> {
+  lanzarSiError(validarIdMeta(metaId));
+  const meta = await Meta.findById(metaId);
+  if (!meta) {
+    throw new ApiError(404, MENSAJES_CRUD_META.noExiste(metaId));
+  }
+  return meta;
+}
+
+/** B-27: una meta por id, activa o archivada. */
+export async function obtenerMetaPorId(metaId: string): Promise<IMeta> {
+  return buscarMetaPorIdOFallar(metaId);
+}
+
+/** B-28: actualización parcial de la meta activa, con las mismas reglas que `PUT /meta`. */
+export async function actualizarMeta(
+  metaId: string,
+  cambios: Partial<DatosMeta>,
+): Promise<{ meta: IMeta; creada: boolean }> {
+  const meta = await buscarMetaPorIdOFallar(metaId);
+  lanzarSiError(validarModificacionMeta(meta));
+  const videojuegoId = meta.videojuego.toString();
+  const videojuego = await buscarVideojuegoPorId(videojuegoId);
+  const cifras = cifrasValidadas(
+    combinarCambiosMeta(meta, cambios),
+    videojuego.estado,
+  );
+  return reemplazarMeta(videojuegoId, meta, cifras);
+}
+
+/** B-29: desactiva la meta sin borrarla ni borrar sus hitos. */
+export async function desactivarMetaPorId(metaId: string): Promise<IMeta> {
+  const meta = await buscarMetaPorIdOFallar(metaId);
+  lanzarSiError(validarDesactivacionMeta(meta));
+  meta.activa = false;
+  meta.vigenteHasta = new Date();
+  return meta.save();
 }
 
 export async function calcularProgreso(

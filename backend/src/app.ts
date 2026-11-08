@@ -13,6 +13,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { videojuegoRouter } from "./routes/videojuego.routes";
 import { partidaRouter } from "./routes/partida.routes";
 import { metaRouter } from "./routes/meta.routes";
+import { metaPorIdRouter } from "./routes/metaPorId.routes";
 import { ApiError } from "./apiError";
 
 export function crearApp(): Express {
@@ -30,6 +31,7 @@ export function crearApp(): Express {
   app.use("/api/videojuegos/:id", metaRouter);
   app.use("/api/videojuegos", videojuegoRouter);
   app.use("/api/partidas", partidaRouter);
+  app.use("/api/metas", metaPorIdRouter);
 
   app.use((req: Request, res: Response, next) => {
     next(

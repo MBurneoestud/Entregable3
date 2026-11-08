@@ -4,10 +4,135 @@ Proyecto: Diario de Progreso Gamer · Rama: `feature/e2-metas-rachas` · Fecha d
 
 El historial de git solo muestra **qué** cambió y **cuándo** se hizo el commit. No muestra los planes hechos en plan mode, las ejecuciones de tests, las pruebas manuales contra la API, si los hooks funcionan, las decisiones tomadas en la conversación con el agente ni el trabajo que aún no está en un commit. Este documento reúne esa evidencia. El contenido íntegro de cada archivo de evidencia está en los [apéndices](#apendices).
 
+## 0. Auditoría por criterio
+
+Una fila por cada fila de la tabla «criterio → verificación» de cada spec: [backend §7](specs/E2-backend-meta-y-progreso-semanal.md#7-criterio--verificación) y [frontend §6](specs/E2-frontend-meta-semanal.md#6-criterio--verificación). Fecha de corte: 2026-11-08.
+
+**Cómo leer las tablas**
+
+- **Auto:** test de `cd backend && npm test`. En la última ejecución (2026-11-08, tras E2-T15) pasan **203 de 203**, con 0 fallos y 0 omitidos.
+- **Curl #N:** caso N de la [tabla de pruebas manuales §4.1](#41-tabla-de-pruebas), con el log en el [Apéndice C](#apendice-c).
+- **Revisión:** comprobación del código o `grep` hecha el 2026-11-08; el comando está en la columna de evidencia.
+- **Resultado:**
+  - ✅ verificado;
+  - ✅ auto · ⏳ manual: el test pasa, pero la comprobación manual que pide la spec aún no está registrada;
+  - ⏳ pendiente: no hay evidencia registrada todavía;
+  - ❌ falla.
+
+Ninguna fila se marca ✅ sin evidencia registrada.
+
+### 0.1 Spec backend — Meta y progreso semanal
+
+| Criterio / regla | Cómo se verificó | Resultado | Evidencia |
+|---|---|---|---|
+| H0-C2, B-05 | Auto | ✅ | `fechas.test.js` (`hoyEcuador(2026-11-09T04:59Z) = "2026-11-08"`); `progreso.test.js` caso 2 |
+| H0-C3 | Auto | ✅ | `progreso.test.js` caso 1 |
+| H0-C4 | Auto | ✅ | `fechas.test.js` (`inicioSemana("2026-01-01") = "2025-12-29"`) |
+| B-06 | Auto | ✅ | `fechas.test.js` (`diaCalendario`, `interpretarFecha`) |
+| H1-C1 | Curl | ✅ | Curl #3: `PUT /meta {5,3}` → 201, meta activa |
+| H1-C2, B-03 | Manual (pendiente): `PUT /meta {8,3}` sobre una meta existente | ⏳ pendiente | Ningún caso de §4.1 cambia las cifras de una meta existente |
+| H1-C3 | Manual (pendiente) | ⏳ pendiente | Ningún caso cambia una meta con hitos |
+| H1-C4, B-04 | Curl | ✅ | Curl #14: mismos valores → 200, sin meta nueva |
+| H1-C5, B-02 | Auto + Curl | ✅ | `meta.test.js` y `metas.test.js` caso 1; Curl #18, #19 y #20 → 400 con el mensaje exacto |
+| H2-C1 | Curl | ✅ | Curl #27 (`DELETE /meta` → 204) y #28 (`GET /meta` → 404) |
+| H2-C2 | Auto | ✅ | `progreso.test.js` caso 10 |
+| H2-C3 | Curl | ✅ | Curl #2: sin meta → `meta: null`, `hitos: []`, horas y rachas calculadas |
+| H3-C1, B-18 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` caso 15 y `metas.test.js` caso 1; falta el `PUT` de estado a `completado` contra la API |
+| H3-C3 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 1 (juego `abandonado` → 400); falta la comprobación contra la API |
+| H3-C4 | Manual (pendiente) | ⏳ pendiente | — |
+| H3-C6 | Manual (pendiente) | ⏳ pendiente | — |
+| H4-C1, B-17 | Curl | ✅ | Curl #33–34: al borrar A y B se borraron sus metas |
+| H5-C1 | Auto | ✅ | `progreso.test.js` (3,5 h, 70 %, 2 días, 67 %) |
+| H5-C2, B-09 | Auto | ✅ | `progreso.test.js` caso 6 (140 %) |
+| H5-C3, B-08 | Auto | ✅ | `progreso.test.js` caso 3 |
+| H5-C4 | Auto | ✅ | `progreso.test.js` caso 4 |
+| H5-C5 | Auto | ✅ | `progreso.test.js` caso 5 |
+| H5-C6, B-11 | Auto | ✅ | `progreso.test.js` caso 7 |
+| H5-C7 | Auto | ✅ | `progreso.test.js` caso 1 |
+| H6-C1 … H6-C5, B-10 | Auto + Curl | ✅ | `progreso.test.js` caso 11; Curl #16 (`rachaActual: 3`, racha rota) |
+| H6-C6, B-07 | Auto | ✅ | `progreso.test.js` caso 12; `orden-partidas.test.js` (`avanceActualHastaHoy`) |
+| H7-C1 | Curl | ✅ | Curl #15: hito 50 % con avance 35 % → 201 |
+| H7-C2, H7-C3, H7-C4, B-13, B-14 | Auto + Curl | ✅ | `progreso.test.js` caso 14 y `meta.test.js`; Curl #21 (≤ avance → 400), #22 (sin descripción → 400) y #31 (repetido → 409) |
+| H7-C5 | Manual (pendiente): `DELETE /meta/hitos/:hitoId` → 200 | ⏳ pendiente | Curl #23 y #26 solo prueban los errores (400 y 404) |
+| H7-C6 | Curl | ✅ | Curl #29: sin meta → 404 |
+| H8-C1, B-15 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` caso 13 |
+| H8-C2, H8-C3 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` casos 13 y 17 |
+| H8-C4, B-16 | Auto + Manual | ✅ auto · ⏳ manual | `orden-partidas.test.js` |
+| H9-C1, B-12 | Auto | ✅ | `progreso.test.js` (3 de 4 semanas) |
+| H9-C2 | Auto + Curl | ✅ | `progreso.test.js` caso 9; Curl #2 (4 semanas `sin_meta`) |
+| H9-C3 | Auto | ✅ | `progreso.test.js` caso 8 |
+| H9-C4 | Auto | ✅ | `progreso.test.js` (la semana actual no está en `ultimas4`) |
+| B-19 | Revisión | ✅ | `meta.controller.ts`: `cuerpo(req)` y desestructuración de los campos permitidos en cada handler, también en los de E2-T15 |
+| B-20 | Curl | ✅ | Curl #17 (`abc` → 400) y #24 (id inexistente → 404) |
+| B-21 | Revisión | ✅ | `grep -rn "process.env" backend/src` → solo `config/env.ts` |
+| B-22 | Auto + Curl | ✅ | `progreso.test.js` caso 16; Curl #16 (`mejorRacha: 4`) |
+| B-23 | Auto + Curl | ✅ | `progreso.test.js` caso 17; Curl #2 y #16 (objeto sin envoltorio) y #30 (`/progreso` → 404) |
+| B-24 | Auto + Curl | ✅ | `progreso.test.js` caso 14 y `errorHandler.test.js`; Curl #31 (hito repetido → 409) y #32 (8 `PUT` simultáneos → 201 ×2, 409 ×6) |
+| H1-C6, B-25 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` casos 1 y 2; falta `POST /metas` dos veces → 201 y 409 (comandos en §0.3) |
+| H1-C7, B-26 | Manual (pendiente) | ⏳ pendiente | Comandos en §0.3 |
+| B-27 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 3 |
+| B-28 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` casos 4 y 5 |
+| H2-C4, B-29 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 6 |
+
+### 0.2 Spec frontend — Sección «Meta semanal»
+
+| Criterio / regla | Cómo se verificó | Resultado | Evidencia |
+|---|---|---|---|
+| H0-C1, F-02 | Auto + Manual | ✅ auto · ⏳ manual | `test/frontend/formato.test.js` (`formatearFecha` → «21 oct 2026») |
+| H1-C1 | Manual (navegador) | ⏳ pendiente | — |
+| H1-C2, F-08 | Manual (navegador) | ⏳ pendiente | — |
+| H1-C3 | Manual (navegador) | ⏳ pendiente | — |
+| H1-C5, F-15 | Manual (navegador) | ⏳ pendiente | Los mensajes del backend están verificados en Curl #18–#20 |
+| H2-C1, F-08 | Manual (navegador) | ⏳ pendiente | — |
+| H2-C3 | Manual (navegador) | ⏳ pendiente | — |
+| H3-C2, H3-C5, F-06 | Manual (navegador) | ⏳ pendiente | — |
+| H3-C3 | Manual (navegador) | ⏳ pendiente | — |
+| H4-C2, F-09 | Manual (navegador) | ⏳ pendiente | — |
+| H5-C1 | Manual (navegador) | ⏳ pendiente | — |
+| H5-C2, F-05 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`anchoBarra` limita a 100) |
+| H5-C3 | Manual (navegador) | ⏳ pendiente | — |
+| H5-C8, F-11 | Manual (navegador) | ⏳ pendiente | — |
+| H6-C1 … H6-C3, H6-C5, F-14 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`textoRacha`) |
+| H7-C1 | Manual (navegador) | ⏳ pendiente | — |
+| H7-C2, H7-C4 | Manual (navegador) | ⏳ pendiente | — |
+| H7-C3, F-07 | Manual (navegador) | ⏳ pendiente | — |
+| H7-C5 | Manual (navegador) | ⏳ pendiente | — |
+| H7-C6, F-07 | Manual (navegador) | ⏳ pendiente | — |
+| H8-C1, F-10 | Manual (navegador) | ⏳ pendiente | — |
+| H9-C1, H9-C5, F-13 | Manual (navegador) | ⏳ pendiente | — |
+| H9-C2 | Manual (navegador) | ⏳ pendiente | — |
+| F-01 | Revisión | ✅ | `grep -rn "fetch(" frontend/src/pages frontend/src/components` → sin resultados |
+| F-03 | Revisión | ✅ | `MetaSemanal.tsx` no usa `Math.`, `/ 60` ni `* 100`: solo formatea los datos de `/progreso-semanal` |
+| F-04, F-12 | Revisión | ✅ (código) · ⏳ visual | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales |
+| Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08) |
+
+### 0.3 Cómo cerrar los pendientes
+
+**Backend.** Con la API en local (`cd backend && npm run dev`), sobre un videojuego de prueba `$V` en estado `jugando`:
+
+```bash
+API=http://localhost:3000/api
+curl -s -X POST $API/videojuegos/$V/metas -H 'Content-Type: application/json' -d '{"horasSemanales":5,"diasPorSemana":3}'   # 201 (B-25)
+curl -s -X POST $API/videojuegos/$V/metas -H 'Content-Type: application/json' -d '{"horasSemanales":6,"diasPorSemana":3}'   # 409 (B-25)
+curl -s $API/videojuegos/$V/metas                                                                                         # 1 meta (B-26)
+curl -s -X PATCH $API/metas/$M -H 'Content-Type: application/json' -d '{"horasSemanales":8}'                              # 201, diasPorSemana 3 (B-28, H1-C2)
+curl -s $API/videojuegos/$V/metas                                                                                         # 2 metas, activa primero (H1-C7)
+curl -s -X PATCH $API/metas/$M -H 'Content-Type: application/json' -d '{"horasSemanales":9}'                              # 409: $M ya está archivada (B-28)
+curl -s $API/metas/abc                                                                                                    # 400 (B-27)
+curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                                                           # 200 (B-29)
+curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                                                           # 409 (B-29, H2-C4)
+```
+
+**Frontend.** Recorrer en `http://localhost:5173` las filas ⏳ de §0.2 y anotar en la columna de evidencia la fecha y lo observado (o una captura).
+
+---
+
 ## Índice
 
 | § | Evidencia | Por qué git no la muestra | Contenido |
 |---|---|---|---|
+| 0 | **Auditoría por criterio** (una fila por criterio de cada spec) | — | [§0](#0-auditoría-por-criterio) |
+| — | **⚠️ Deuda técnica** (pagada y diferida) | Vive en el backlog, no en esta auditoría | [Backlog § Deuda técnica](backlog/E2-metas-y-rachas.md#deuda-tecnica) |
 | 1 | Planes hechos en plan mode | Se guardan fuera del repo (`~/.claude/plans/`) | [Apéndice A](#apendice-a) |
 | 2 | Orden «tests primero, después código» | Los commits de E2-T01…T14 se hicieron todos en dos minutos (22:58–22:59), y cada uno lleva el test y el código juntos | [Apéndice B.1](#b-1), [Apéndice B.2](#b-2) |
 | 3 | Ejecuciones de `npm test` a lo largo del trabajo | git no guarda resultados de ejecución | §3 |
@@ -55,6 +180,7 @@ El plan 4 es el que pide el paso 6. Su línea de convenciones dice que los tests
 | Después de alinear (inicio de la sesión del paso 6) | 152 / 152, 0 omitidos | ejecución del 2026-11-08 |
 | Tests de B-24 escritos, sin código | 145 / 155 (10 fallan) | [Apéndice B.1](#b-1) |
 | B-24 implementada | **155 / 155**, 0 omitidos; `npm run build` sin errores | [Apéndice B.2](#b-2) |
+| E2-T15 implementado (CRUD de Meta) | **203 / 203**, 0 omitidos; `npm run build` sin errores en backend y frontend; `tsc --noEmit --noUnusedLocals` limpio | ejecución del 2026-11-08 |
 
 ## 4. Pruebas manuales del endpoint con curl (paso 6)
 
@@ -172,7 +298,7 @@ También deja ver un bug: una partida registrada el 21/10/2026 aparece como «20
 
 - **Orden de los tests en E2-T01…T05.** Solo el plan 4 indica que los tests iban primero; git no lo demuestra (§2). El ciclo rojo → verde quedó registrado únicamente para B-24.
 - **Sin tests automatizados en T06–T08** (servicio, integración y endpoints). Esa parte se cubre con las pruebas manuales de §4, no con `npm test`.
-- **Partidas huérfanas.** Eliminar un videojuego borra sus metas (B-17), pero no sus partidas (problema #2 del diagnóstico, todavía abierto). Por eso la limpieza de §4 tuvo que borrarlas a mano.
+- **Partidas huérfanas.** Eliminar un videojuego borra sus metas (B-17), pero no sus partidas (problema #2 del diagnóstico, todavía abierto; ver [Deuda técnica](backlog/E2-metas-y-rachas.md#deuda-tecnica)). Por eso la limpieza de §4 tuvo que borrarlas a mano.
 - **Sin evidencia histórica de los hooks.** La prueba de los hooks (§5) es de 2026-11-08; no hay registro de que funcionaran en sesiones anteriores.
 
 ---

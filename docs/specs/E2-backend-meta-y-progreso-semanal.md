@@ -2,7 +2,8 @@
 
 Fecha: 2026-11-07 · Estado: implementada (2026-11-08)
 Documentos relacionados: [PRD](../prd/PRD-diario-progreso-gamer.md) · [historias y tickets](../backlog/E2-metas-y-rachas.md) · [spec frontend](E2-frontend-meta-semanal.md) · [diagnóstico](../diagnostico.md)
-Tickets: E2-T01, E2-T03, E2-T04, E2-T05, E2-T06, E2-T07, E2-T08 (y la parte backend de E2-T14)
+Tickets: E2-T01, E2-T03, E2-T04, E2-T05, E2-T06, E2-T07, E2-T08, E2-T15 (y la parte backend de E2-T14)
+Ampliación (2026-11-08): CRUD REST del recurso Meta con 409 al crear una segunda meta activa (E2-T15, reglas B-25 a B-29).
 
 ## 0. Resumen
 
@@ -36,6 +37,11 @@ Cada videojuego puede tener una meta semanal activa (horas y días por semana) c
 | B-22 | `mejorRacha` **DEBE** ser la serie más larga de días consecutivos con al menos una partida en todo el historial del juego (sin contar partidas futuras, B-07). Siempre **DEBE** cumplirse `mejorRacha ≥ rachaActual`; sin partidas vale 0. | H-1 |
 | B-23 | `GET /api/videojuegos/:id/progreso-semanal` **DEBE** devolver el objeto de §5 sin envoltorio. `semana`, `horasSemana`, `diasJugadosSemana`, `rachaActual`, `mejorRacha` y `ultimas4` **DEBEN** calcularse aunque no haya meta activa; sin meta, `meta`, `porcentajeHoras`, `porcentajeDias` y `cumplida` **DEBEN** ser `null` y `hitos` **DEBE** ser `[]`. `alcanzado` **DEBE** calcularse con el avance actual (B-15) y `alcanzadoEn` devolverse tal cual (o `null`). `horasSemana` **DEBE** redondearse a 1 decimal. | H-2, H-6 |
 | B-24 | Un conflicto con el estado actual de la meta **DEBE** devolver 409: (a) añadir un hito con un `porcentajeObjetivo` que ya tiene otro hito de la meta activa («Ya existe un hito con porcentaje objetivo X %»); (b) una violación de un índice único (error E11000 de MongoDB, p. ej. dos `PUT /meta` simultáneos que intentan crear dos metas activas, B-01) → «Ya existe un recurso con esos datos; vuelve a intentarlo». El resto de errores de validación de un hito siguen siendo 400. | RN-10, B-01 |
+| B-25 | `POST /api/videojuegos/:id/metas` **DEBE** crear una meta activa (`vigenteDesde = ahora`, sin hitos) con las validaciones de B-02 y B-18. Si el videojuego ya tiene una meta activa, **DEBE** responder 409 «El videojuego ya tiene una meta activa; cámbiala o desactívala antes de crear otra» y **NO DEBE** archivar ni modificar la meta existente. | RN-06, B-01 |
+| B-26 | `GET /api/videojuegos/:id/metas` **DEBE** devolver `{ metas }` con todas las metas del videojuego (la activa y las archivadas), ordenadas por `vigenteDesde` descendente. Sin metas, **DEBE** devolver `metas: []`. | RN-07 |
+| B-27 | `GET /api/metas/:metaId` **DEBE** devolver la meta, activa o archivada. Un `metaId` con formato inválido **DEBE** devolver 400 y uno que no existe, 404. | B-20 |
+| B-28 | `PATCH /api/metas/:metaId` con `{ horasSemanales?, diasPorSemana? }` **DEBE** actualizar la meta activa; los campos omitidos **DEBEN** conservar su valor. El cambio **DEBE** seguir B-03 (archiva y crea una nueva → 201) y B-04 (mismos valores → 200), y las validaciones de B-02 y B-18. Sobre una meta desactivada **DEBE** responder 409 «La meta está desactivada y no se puede modificar». | RN-07 |
+| B-29 | `PATCH /api/metas/:metaId/desactivar` **DEBE** dejar la meta con `activa = false` y `vigenteHasta = ahora` y devolverla (200). Si ya estaba desactivada, **DEBE** responder 409 «La meta ya está desactivada». **NO DEBE** borrar la meta ni sus hitos. | RN-07 |
 
 ## 2. Fechas — `backend/src/dominio/fechas.ts` (E2-T01)
 
@@ -184,6 +190,13 @@ Nuevo router `backend/src/routes/meta.routes.ts` con `Router({ mergeParams: true
 | `POST /api/videojuegos/:id/meta/hitos` | `{ descripcion, porcentajeObjetivo }` | 201 `{ meta }` · 400 · 404 · 409 (porcentaje objetivo repetido, B-24) |
 | `DELETE /api/videojuegos/:id/meta/hitos/:hitoId` | — | 200 `{ meta }` · 400 · 404 |
 | `GET /api/videojuegos/:id/progreso-semanal` | — | 200 con el objeto de abajo, sin envoltorio (B-23) · 400 · 404 (solo si no existe el videojuego) |
+| `POST /api/videojuegos/:id/metas` | `{ horasSemanales, diasPorSemana }` | 201 `{ meta }` · 400 · 404 · 409 si ya hay una meta activa (B-25) |
+| `GET /api/videojuegos/:id/metas` | — | 200 `{ metas }` (B-26) · 400 · 404 |
+| `GET /api/metas/:metaId` | — | 200 `{ meta }` · 400 · 404 (B-27) |
+| `PATCH /api/metas/:metaId` | `{ horasSemanales?, diasPorSemana? }` | 201 `{ meta }` si se creó una meta · 200 `{ meta }` si no cambió · 400 · 404 · 409 si está desactivada (B-28) |
+| `PATCH /api/metas/:metaId/desactivar` | — | 200 `{ meta }` · 400 · 404 · 409 si ya estaba desactivada (B-29) |
+
+**Por qué conviven `/meta` y `/metas`.** Las rutas `/api/videojuegos/:id/meta` trabajan sobre «la meta activa del juego» y son las que usa la interfaz: fijar o cambiar la meta en un solo paso (`PUT`, que archiva la anterior) y quitarla. Las rutas `/api/videojuegos/:id/metas` y `/api/metas/:metaId` son el CRUD del recurso Meta: crear (rechazando una segunda meta activa con 409), listar el historial, consultar por id, actualizar y desactivar. Las dos familias usan el mismo servicio y las mismas funciones puras (`dominio/progreso.ts` y `dominio/metas.ts`), así que aplican las mismas reglas. La actualización es `PATCH` porque es parcial, y desactivar es un `PATCH` y no un `DELETE` porque la meta no se borra: queda en el historial.
 
 Mensajes 400, en español y exactos:
 
@@ -199,6 +212,11 @@ Mensajes 409 (B-24):
 
 - «Ya existe un hito con porcentaje objetivo X %»
 - «Ya existe un recurso con esos datos; vuelve a intentarlo» (E11000, lo resuelve `errorHandler`)
+- «El videojuego ya tiene una meta activa; cámbiala o desactívala antes de crear otra» (B-25)
+- «La meta está desactivada y no se puede modificar» (B-28)
+- «La meta ya está desactivada» (B-29)
+
+Mensajes nuevos de 400 y 404 (B-27): «"X" no es un id válido para el campo "metaId"» y «No existe una meta con id X».
 
 Ejemplo de `GET /api/videojuegos/:id/progreso-semanal` (sábado 7 de noviembre de 2026):
 
@@ -271,6 +289,13 @@ Se escriben con `node:test` en `test/` y se lanzan con `cd backend && npm test`.
   16. `mejorRacha` (B-22): sin partidas → 0; una serie pasada de 5 días y la actual de 2 → 5 y `rachaActual = 2`; la serie actual es la mejor → igual a `rachaActual`; partidas futuras no cuentan;
   17. `aProgresoSemanal` (B-23): con meta → campos del ejemplo de §5, `horasSemana` con 1 decimal (20 min → 0,3) y hitos ordenados con `alcanzado`; hito con `alcanzadoEn` pero avance actual menor → `alcanzado: false` y fecha conservada; avance = objetivo → `alcanzado: true`; sin partidas → ningún hito alcanzado; sin meta → `meta`, `porcentajeHoras`, `porcentajeDias` y `cumplida` en `null`, `hitos: []` y horas, días y rachas calculados.
 - `test/middlewares/errorHandler.test.js`: `ApiError(409)` → 409; error E11000 de MongoDB → 409 con el mensaje de §5 (B-24); `CastError` → 400.
+- `test/dominio/metas.test.js` (E2-T15), con las funciones puras de `backend/src/dominio/metas.ts`:
+  1. `validarDatosMeta`: horas 0, 101 o no numéricas → 400 con el mensaje de horas; días 0, 8 o 2.5 → 400 con el de días; juego `completado` o `abandonado` → 400; datos válidos en juego `jugando` o `pausado` → `null` (B-02, B-18);
+  2. `validarCreacionMeta`: con meta activa → 409 con el mensaje de B-25; sin meta activa → `null`;
+  3. `validarIdMeta`: `"abc"` → 400 con el mensaje de B-27; un ObjectId válido → `null`;
+  4. `validarModificacionMeta`: meta desactivada → 409 (B-28); meta activa → `null`;
+  5. `combinarCambiosMeta`: solo `horasSemanales` → conserva `diasPorSemana`, y al revés; cuerpo vacío → los dos valores actuales (B-28);
+  6. `validarDesactivacionMeta`: meta ya desactivada → 409 (B-29); meta activa → `null`.
 - `test/dominio/orden-partidas.test.js`: la función de orden / avance actual con dos partidas del mismo día devuelve la creada más tarde (B-16), y `avanceActualHastaHoy` ignora una partida con fecha futura (B-07).
 
 ## 7. Criterio → verificación
@@ -322,6 +347,11 @@ Se escriben con `node:test` en `test/` y se lanzan con `cd backend && npm test`.
 | B-22 | `progreso.test.js` caso 16 | Auto |
 | B-23 | `progreso.test.js` caso 17; `GET /api/videojuegos/:id/progreso-semanal` → 200 con el objeto de §5; `GET …/progreso` → 404 | Auto + Manual |
 | B-24 | `progreso.test.js` caso 14 (repetido → 409); `errorHandler.test.js` (E11000 → 409); `POST /meta/hitos` con un porcentaje objetivo repetido → 409 | Auto + Manual |
+| H1-C6, B-25 | `metas.test.js` casos 1 y 2; `POST /metas` dos veces → 201 y 409, y `GET /meta` sigue devolviendo la primera meta | Auto + Manual |
+| H1-C7, B-26 | `PUT /meta` con otras cifras y `GET /metas` → 2 metas, la activa primero; juego sin metas → `metas: []` | Manual |
+| B-27 | `metas.test.js` caso 3; `GET /api/metas/abc` → 400; id válido inexistente → 404; id de una meta archivada → 200 | Auto + Manual |
+| B-28 | `metas.test.js` casos 4 y 5; `PATCH /api/metas/:metaId {horasSemanales: 8}` → 201 con `diasPorSemana` igual; mismo cuerpo otra vez sobre la nueva → 200; sobre la archivada → 409 | Auto + Manual |
+| H2-C4, B-29 | `metas.test.js` caso 6; `PATCH …/desactivar` → 200 y la segunda vez → 409; `GET /api/metas/:metaId` sigue devolviendo la meta con sus hitos | Auto + Manual |
 
 ## 8. Ticket → archivos
 
@@ -334,12 +364,13 @@ Se escriben con `node:test` en `test/` y se lanzan con `cd backend && npm test`.
 | E2-T06 | N `backend/src/services/meta.service.ts` |
 | E2-T07 | M `backend/src/services/videojuego.service.ts` · M `backend/src/services/partida.service.ts` |
 | E2-T08 | N `backend/src/routes/meta.routes.ts` · N `backend/src/controllers/meta.controller.ts` · M `backend/src/app.ts` |
+| E2-T15 | N `backend/src/dominio/metas.ts` · N `test/dominio/metas.test.js` · M `backend/src/services/meta.service.ts` · M `backend/src/controllers/meta.controller.ts` · M `backend/src/routes/meta.routes.ts` · N `backend/src/routes/metaPorId.routes.ts` · M `backend/src/app.ts` · M `README.md` |
 | E2-T14 (backend) | M `README.md` · M `docs/diagnostico.md` |
 
 ## 9. Fuera de alcance
 
 - Notificaciones, recordatorios, metas compartidas, rankings y gráficos históricos.
-- Endpoints para listar o editar metas archivadas.
+- Editar una meta archivada (un `PATCH` sobre ella → 409, B-28) o reactivarla: para volver a tener meta se crea una nueva.
 - Rechazar partidas con fecha futura al crearlas (PRD P-1).
 - Borrar las partidas de un videojuego eliminado (PRD P-2, diagnóstico #2).
 

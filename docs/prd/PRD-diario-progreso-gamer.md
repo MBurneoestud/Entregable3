@@ -103,7 +103,7 @@ Cómo se mide en E2: el detalle del juego muestra «X de N semanas con meta cump
 | ID | Regla |
 |---|---|
 | RN-05 | La semana va de **lunes a domingo**. «Hoy» y la semana actual se calculan en **hora de Ecuador**. |
-| RN-06 | Cada videojuego tiene **como máximo una meta activa**, con horas por semana y días por semana; las dos cifras son obligatorias. |
+| RN-06 | Cada videojuego tiene **como máximo una meta activa**, con horas por semana y días por semana; las dos cifras son obligatorias. Si se intenta crear una segunda meta activa, se rechaza con un mensaje claro: para cambiarla se edita la actual o se desactiva primero. Las metas anteriores se pueden consultar como historial. |
 | RN-07 | Cambiar la meta no la sobrescribe: la anterior se guarda en el historial con sus fechas de vigencia. Guardar los mismos valores no crea una meta nueva. |
 | RN-08 | Una semana se **cumple** solo si se alcanzan **las horas y los días** de la meta. |
 | RN-09 | **Últimas 4 semanas:** son las 4 semanas completas anteriores a la actual. Una semana sin meta vigente aparece como «Sin meta» y no cuenta en el total N. |

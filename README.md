@@ -57,7 +57,7 @@ Meta
 └── createdAt, updatedAt
 ```
 
-`Meta` se referencia porque tiene su propio ciclo de vida: se crea, se reemplaza y se desactiva sin tocar la ficha del juego, y las metas anteriores se conservan como historial. Los hitos se embeben porque son una lista corta y acotada que solo tiene sentido dentro de su meta. El estado «alcanzado» se guarda en `alcanzadoEn` porque, según la decisión H-6 del PRD, un hito alcanzado no se revierte aunque baje el avance (ver [spec §3.1](docs/specs/E2-backend-meta-y-progreso-semanal.md)).
+`Meta` se referencia porque tiene su propio ciclo de vida: se crea, se reemplaza y se desactiva sin tocar la ficha del juego, y las metas anteriores se conservan como historial. Los hitos se embeben porque son una lista corta y acotada que solo tiene sentido dentro de su meta. El estado «alcanzado» no se guarda: se calcula con el avance actual del juego (decisión H-6 del PRD), para no duplicar un dato que ya está en las partidas. Lo único que se guarda es `alcanzadoEn`, la fecha de la primera vez que se alcanzó, como historial (ver [spec §3.1](docs/specs/E2-backend-meta-y-progreso-semanal.md)).
 
 ### Resumen de progreso
 
@@ -142,12 +142,19 @@ Las rutas usan el prefijo `/api`.
 | `POST` | `/api/videojuegos/:id/meta/hitos` | Añade un hito con `{ "descripcion": "Llegar al 50 %", "porcentajeObjetivo": 50 }` (máx. 5, porcentaje objetivo entero 1–100, mayor que el avance actual); 201 · 409 si el porcentaje objetivo ya existe. |
 | `DELETE` | `/api/videojuegos/:id/meta/hitos/:hitoId` | Elimina un hito de la meta activa; 200 con la meta. |
 | `GET` | `/api/videojuegos/:id/progreso-semanal` | Progreso de la semana actual (lunes a domingo, hora de Ecuador): horas y días jugados frente a la meta, racha actual y mejor racha, hitos con su estado `alcanzado`, avance actual y estado de las últimas 4 semanas completas. Estructura completa en la [spec §5](docs/specs/E2-backend-meta-y-progreso-semanal.md). |
+| `POST` | `/api/videojuegos/:id/metas` | Crea la meta activa con `{ "horasSemanales": 5, "diasPorSemana": 3 }`; 201 · 409 si el juego ya tiene una meta activa (no la modifica). |
+| `GET` | `/api/videojuegos/:id/metas` | Historial de metas del juego (`{ metas }`), activa y archivadas, la más reciente primero. |
+| `GET` | `/api/metas/:metaId` | Una meta por id, activa o archivada; 400 si el id no es válido, 404 si no existe. |
+| `PATCH` | `/api/metas/:metaId` | Actualiza parcialmente la meta activa (`horasSemanales` y/o `diasPorSemana`); 201 si crea una nueva y archiva la anterior, 200 si no cambia · 409 si la meta está desactivada. |
+| `PATCH` | `/api/metas/:metaId/desactivar` | Desactiva la meta sin borrarla; 200 con la meta · 409 si ya estaba desactivada. |
+
+Las rutas `/meta` son las que usa la interfaz (la meta activa del juego); las rutas `/metas` y `/api/metas/:metaId` son el CRUD del recurso Meta. Ver «Por qué conviven» en la [spec §5](docs/specs/E2-backend-meta-y-progreso-semanal.md).
 
 ### Códigos de error
 
 - **400:** errores de validación de esquema o identificadores con formato inválido.
 - **404:** recurso inexistente o videojuego referenciado que no existe.
-- **409:** conflicto con el estado actual: hito con un porcentaje objetivo que ya existe en la meta, o violación de un índice único (p. ej. dos `PUT /meta` simultáneos).
+- **409:** conflicto con el estado actual: segunda meta activa para el mismo juego, modificar o desactivar una meta ya desactivada, hito con un porcentaje objetivo que ya existe en la meta, o violación de un índice único (p. ej. dos `PUT /meta` simultáneos).
 - **500:** error inesperado del servidor.
 
 Los errores incluyen el `requestId` de la solicitud. El middleware centralizado está en `backend/src/middlewares/errorHandler.ts`.
