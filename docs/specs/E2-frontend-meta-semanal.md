@@ -122,7 +122,7 @@ Las fechas de alcance de los hitos (`alcanzadoEn`, un instante real) se formatea
 | H7-C5 | «Eliminar» en un hito → `confirm` → desaparece | Manual |
 | H7-C6, F-07 | Juego sin meta → no hay formulario de hitos | Manual |
 | H8-C1, F-10 | Registrar una partida con 55 % y volver al detalle → el hito de 50 % aparece «Alcanzado el <hoy>» | Manual |
-| H9-C1, F-13 | 4 indicadores con rango y estado, «3 de 4 semanas con meta cumplidas», sin gráfico | Manual |
+| H9-C1, H9-C5, F-13 | 4 indicadores con rango y estado, «3 de 4 semanas con meta cumplidas», sin gráfico | Manual |
 | H9-C2 | Meta de hace 2 semanas → 2 «Sin meta» y «X de 2» | Manual |
 | F-01 | `grep -n "fetch(" frontend/src/pages` no devuelve resultados | Manual |
 | F-03 | Revisión de código: la sección no calcula porcentajes, semanas ni racha; solo formatea los datos de `/progreso` | Manual |
