@@ -49,4 +49,5 @@ API REST para registrar progreso en videojuegos, partidas individuales y logros.
 - Llama a la API mediante los módulos de `frontend/src/api/`, usando `VITE_API_URL` como base; en local, Vite también hace de proxy de las rutas `/api` hacia `http://localhost:3000`.
 - Estilos con Tailwind CSS (`frontend/tailwind.config.js`) y variables de color en `frontend/src/styles.css`; reutilizar esos colores y fuentes en lugar de valores sueltos.
 - Textos de la interfaz en español.
+- Guía visual: seguir `DESIGN.md` (colores, tipografía, espaciado, componentes, tono y «no hacemos»).
 - Arranque: `cd frontend && npm run dev` (con la API levantada con `cd backend && npm run dev`).

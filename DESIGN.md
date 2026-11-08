@@ -224,3 +224,17 @@ Altura mínima `min-h-11` (44 px) para objetivos táctiles; estados `disabled` c
 - [ ] Decoración con `aria-hidden="true"`; campos con `<label>`.
 - [ ] Textos en español.
 - [ ] Datos obtenidos mediante `frontend/src/api/`, nunca con `fetch` en la página.
+
+---
+
+## 10. No hacemos
+
+- No añadimos colores hex sueltos: solo los tokens de `tailwind.config.js` y `styles.css`.
+- No ponemos más de una `.primary-button` por vista.
+- No usamos el rosa en sólido ni fuera de errores y acciones destructivas.
+- No mezclamos significados de acento: verde = progreso, ámbar = partidas/sesiones.
+- No instalamos librerías de iconos ni usamos imágenes decorativas pesadas.
+- No dejamos decoración sin `aria-hidden="true"` ni campos sin `<label>`.
+- No usamos animaciones largas ni ignoramos `prefers-reduced-motion`.
+- No llamamos a `fetch` desde las páginas: siempre a través de `frontend/src/api/`.
+- No escribimos textos de interfaz en inglés ni en tono impersonal.

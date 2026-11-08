@@ -1,0 +1,8 @@
+{
+  "name": "diario-progreso-gamer-harness",
+  "private": true,
+  "description": "Herramientas del harness de Claude Code (formato con Prettier)",
+  "devDependencies": {
+    "prettier": "^3.9.10"
+  }
+}

@@ -1,9 +1,9 @@
-// Hook PostToolUse: formatea con Prettier los archivos .js, .jsx, .json y .css que Claude crea o edita.
+// Hook PostToolUse: formatea con Prettier los archivos .ts, .tsx, .js, .jsx, .json y .css que Claude crea o edita.
 // Nunca bloquea: ante cualquier error termina con código 0 sin hacer nada.
 const fs = require("node:fs");
 const path = require("node:path");
 
-const EXTENSIONES = new Set([".js", ".jsx", ".json", ".css"]);
+const EXTENSIONES = new Set([".ts", ".tsx", ".js", ".jsx", ".json", ".css"]);
 
 async function formatear(filePath) {
   const prettier = require("prettier");
