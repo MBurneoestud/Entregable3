@@ -7,6 +7,7 @@ import {
   obtenerResumenVideojuego,
   obtenerVideojuegoPorId,
 } from "../api/videojuegoApi";
+import { eliminarPartida } from "../api/partidaApi";
 import type {
   EstadoVideojuego,
   Genero,
@@ -47,6 +48,11 @@ export function DetalleVideojuego() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [eliminandoPartidaId, setEliminandoPartidaId] = useState<string | null>(
+    null,
+  );
+  // F-19: se incrementa para que «Meta semanal» vuelva a pedir el progreso.
+  const [recargaProgreso, setRecargaProgreso] = useState(0);
 
   useEffect(() => {
     if (!id) {
@@ -109,6 +115,31 @@ export function DetalleVideojuego() {
           : "No se pudo eliminar el videojuego.",
       );
       setEliminando(false);
+    }
+  }
+
+  async function manejarEliminarPartida(partida: Partida) {
+    if (!id || eliminandoPartidaId) return;
+    if (!window.confirm("¿Seguro que quieres eliminar esta partida?")) return;
+
+    setError(null);
+    setEliminandoPartidaId(partida._id);
+    try {
+      await eliminarPartida(partida._id);
+      // F-19: tras eliminar se vuelven a pedir partidas, resumen y progreso.
+      const [respuestaPartidas, respuestaResumen] = await Promise.all([
+        obtenerPartidasDeVideojuego(id),
+        obtenerResumenVideojuego(id),
+      ]);
+      setPartidas(respuestaPartidas.partidas);
+      setResumen(respuestaResumen);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo eliminar la partida.",
+      );
+    } finally {
+      setRecargaProgreso((actual) => actual + 1);
+      setEliminandoPartidaId(null);
     }
   }
 
@@ -270,7 +301,11 @@ export function DetalleVideojuego() {
           </div>
         </section>
 
-        <MetaSemanal videojuegoId={videojuego._id} estado={videojuego.estado} />
+        <MetaSemanal
+          videojuegoId={videojuego._id}
+          estado={videojuego.estado}
+          recarga={recargaProgreso}
+        />
 
         <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="panel p-6 sm:p-8">
@@ -418,6 +453,24 @@ export function DetalleVideojuego() {
                         {partida.notas}
                       </p>
                     )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        to={`/partidas/${encodeURIComponent(partida._id)}/editar?videojuegoId=${encodeURIComponent(videojuego._id)}`}
+                        className="secondary-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                      >
+                        Editar
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => manejarEliminarPartida(partida)}
+                        disabled={eliminandoPartidaId !== null}
+                        className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                      >
+                        {eliminandoPartidaId === partida._id
+                          ? "Eliminando..."
+                          : "Eliminar"}
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}

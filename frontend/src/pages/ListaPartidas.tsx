@@ -231,16 +231,24 @@ export function ListaPartidas() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <button
-                          type="button"
-                          onClick={() => manejarEliminar(partida)}
-                          disabled={eliminandoId !== null}
-                          className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
-                        >
-                          {eliminandoId === partida._id
-                            ? "Eliminando..."
-                            : "Eliminar"}
-                        </button>
+                        <div className="flex gap-2">
+                          <Link
+                            to={`/partidas/${encodeURIComponent(partida._id)}/editar`}
+                            className="secondary-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                          >
+                            Editar
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => manejarEliminar(partida)}
+                            disabled={eliminandoId !== null}
+                            className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                          >
+                            {eliminandoId === partida._id
+                              ? "Eliminando..."
+                              : "Eliminar"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

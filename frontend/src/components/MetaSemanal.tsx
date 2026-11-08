@@ -11,7 +11,7 @@ import {
   fijarMeta,
   obtenerProgreso,
   quitarMeta,
-} from "../api/metaApi";
+} from "../api/metasApi";
 import type {
   EstadoSemana,
   EstadoVideojuego,
@@ -53,9 +53,11 @@ function textoDias(dias: number): string {
 type Props = {
   videojuegoId: string;
   estado?: EstadoVideojuego;
+  /** F-19: al cambiar, la sección vuelve a pedir el progreso (p. ej. tras eliminar una partida). */
+  recarga?: number;
 };
 
-export function MetaSemanal({ videojuegoId, estado }: Props) {
+export function MetaSemanal({ videojuegoId, estado, recarga = 0 }: Props) {
   const [progreso, setProgreso] = useState<ProgresoSemanal | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +102,11 @@ export function MetaSemanal({ videojuegoId, estado }: Props) {
       montado.current = false;
     };
   }, [recargar]);
+
+  // F-19: el detalle avisa con `recarga` cuando cambian sus partidas.
+  useEffect(() => {
+    if (recarga > 0) void recargar();
+  }, [recarga, recargar]);
 
   async function manejarFijarMeta(
     horasSemanales: number,
@@ -324,7 +331,7 @@ export function MetaSemanal({ videojuegoId, estado }: Props) {
                     key={semana.inicio}
                     className="rounded-xl border border-line p-4"
                   >
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-copy">
                       {formatearDia(semana.inicio)} – {formatearDia(semana.fin)}
                     </p>
                     <span
@@ -362,7 +369,7 @@ export function MetaSemanal({ videojuegoId, estado }: Props) {
                       className="flex flex-wrap items-center gap-4 py-4"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-copy">
                           {hito.descripcion}
                         </p>
                         <p className="mt-1 text-sm text-mist">
@@ -483,7 +490,7 @@ function BarraProgreso({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="stat-label">{etiqueta}</p>
         {/* F-05: el texto muestra el porcentaje real, aunque supere el 100 %. */}
-        <p className="text-sm font-semibold text-white">
+        <p className="text-sm font-semibold text-copy">
           {texto} · {porcentaje} %
         </p>
       </div>

@@ -12,7 +12,7 @@ El detalle del videojuego (`DetalleVideojuego.tsx`) incorpora una sección «Met
 
 | ID | Regla | Origen |
 |---|---|---|
-| F-01 | Las páginas **NO DEBEN** usar `fetch` directamente; **DEBEN** llamar a `frontend/src/api/metaApi.ts`, que usa `VITE_API_URL` como base. | AGENTS.md |
+| F-01 | Las páginas **NO DEBEN** usar `fetch` directamente; **DEBEN** llamar a `frontend/src/api/metasApi.ts`, que usa `VITE_API_URL` como base. | AGENTS.md |
 | F-02 | Las fechas de partida (`AAAA-MM-DD` guardadas a medianoche UTC) **DEBEN** formatearse con `{ dateStyle: "medium", timeZone: "UTC" }` mediante una única `formatearFecha` en `frontend/src/utils/formato.ts`. **NO DEBEN** quedar copias locales de `formatearFecha`. | RN-03, diag. #1, #11 |
 | F-03 | La interfaz **NO DEBE** recalcular el progreso, la racha, las semanas ni el estado de los hitos: **DEBE** mostrar lo que devuelve `/progreso-semanal`, que es la única fuente de verdad. | B-05…B-16 |
 | F-04 | La sección **DEBE** ser `<section aria-label="Meta semanal">` y estar entre «Resumen de actividad» e «Información». | PRD §5.2 |
@@ -63,7 +63,7 @@ export interface HitoFormulario { descripcion: string; porcentajeObjetivo: numbe
 export interface MetaRespuesta { meta: Meta }
 ```
 
-**Cliente** en `frontend/src/api/metaApi.ts`. Sigue el mismo patrón que `videojuegoApi.ts`: base `VITE_API_URL` y lanza `Error` con el `mensaje` de la API.
+**Cliente** en `frontend/src/api/metasApi.ts`. Sigue el mismo patrón que `videojuegoApi.ts`: base `VITE_API_URL` y lanza `Error` con el `mensaje` de la API.
 
 | Función | Llamada |
 |---|---|
@@ -141,7 +141,7 @@ Las fechas de alcance de los hitos (`alcanzadoEn`, un instante real) se formatea
 | Ticket | Archivos (N = nuevo, M = modificado) |
 |---|---|
 | E2-T02 | N `frontend/src/utils/formato.ts` (`formatearFecha`) · M `frontend/src/pages/ListaPartidas.tsx` · M `frontend/src/pages/DetalleVideojuego.tsx` · N `test/frontend/formato.test.js` |
-| E2-T09 | M `frontend/src/types.ts` · N `frontend/src/api/metaApi.ts` |
+| E2-T09 | M `frontend/src/types.ts` · N `frontend/src/api/metasApi.ts` |
 | E2-T10 | M `frontend/src/pages/DetalleVideojuego.tsx` · M `frontend/src/utils/formato.ts` (`formatearHoras`, `anchoBarra`) · M `test/frontend/formato.test.js` · M `frontend/src/styles.css` (solo si hace falta la clase de la barra, con variables existentes) |
 | E2-T11 | M `frontend/src/pages/DetalleVideojuego.tsx` · M `frontend/src/utils/formato.ts` (`textoRacha`, `formatearDia`) · M `test/frontend/formato.test.js` |
 | E2-T12 | M `frontend/src/pages/DetalleVideojuego.tsx` |
@@ -154,4 +154,29 @@ Si `DetalleVideojuego.tsx` crece demasiado, la sección puede extraerse a `front
 
 - Gráficos, notificaciones y recordatorios.
 - Consultar o editar el historial de metas.
+- Editar un hito existente (el backend no tiene endpoint; se elimina y se vuelve a crear).
 - Tests de componentes React (diagnóstico #15, diferido).
+
+## 9. Ampliación (2026-11-08): refresco del progreso, edición de partidas y tokens de color
+
+Añadida tras verificar el frontend contra el enunciado de E2 («el progreso se vuelve a consultar al registrar, editar o eliminar una partida», «un servicio `metasApi.ts`», «estilos solo desde las variables definidas a partir de DESIGN.md»).
+
+| ID | Regla |
+|---|---|
+| F-16 | El cliente de metas **DEBE** llamarse `frontend/src/api/metasApi.ts`. |
+| F-17 | Registrar una partida desde el detalle (`/partidas/nueva?videojuegoId=…`) **DEBE** volver a `/videojuegos/:id` al guardar, para que el detalle y la sección «Meta semanal» se vuelvan a cargar. Sin `videojuegoId`, se vuelve a `/partidas`. |
+| F-18 | **DEBE** existir la ruta `/partidas/:id/editar`, que reutiliza `FormularioPartida.tsx` con los datos precargados (`obtenerPartidaPorId`) y guarda con `actualizarPartida` (`PUT /api/partidas/:id`). El título y el botón **DEBEN** decir «Editar partida» y «Guardar cambios». Al guardar se aplica la misma regla de vuelta que en F-17. Las notas vacías se envían como `""` para poder borrarlas; dejar vacío el avance mantiene el valor anterior. |
+| F-19 | El historial de partidas del detalle **DEBE** ofrecer «Editar» (enlace a `/partidas/:id/editar?videojuegoId=…`) y «Eliminar» (con `window.confirm`) en cada partida. Al eliminar, el detalle **DEBE** volver a pedir las partidas, el resumen y el progreso semanal: `MetaSemanal` recibe una prop `recarga` (número) que, al cambiar, vuelve a llamar a `obtenerProgreso`. La lista `/partidas` **DEBE** ofrecer también «Editar». |
+| F-20 | Los colores **DEBEN** venir de tokens definidos en `tailwind.config.js` y documentados en `DESIGN.md`. `styles.css` y los componentes **NO DEBEN** contener valores hex sueltos en clases (`[#…]`). Tokens añadidos: `copy` (#f1eddf), `surface` (#191b1a), `field` (#141615), `signal-light` (#d5e783) y `signal-ink` (#202316). En la sección «Meta semanal», el texto principal usa `text-copy` en lugar de `text-white`. |
+
+| Criterio | Verificación | Tipo |
+|---|---|---|
+| F-16 | `grep -rn "metaApi" frontend/src` no devuelve resultados | Manual |
+| F-17 | Desde el detalle, «Registrar partida» → guardar → se vuelve al detalle con las horas de la semana actualizadas | Manual |
+| F-18 | «Editar» una partida → el formulario aparece precargado → cambiar la duración → al volver al detalle, la barra de horas refleja el cambio | Manual |
+| F-19 | «Eliminar» una partida en el detalle → `confirm` → desaparece del historial y se actualizan el resumen y la meta semanal sin recargar la página | Manual |
+| F-20 | `grep -n "\[#" frontend/src/styles.css frontend/src -r` no devuelve resultados | Manual |
+
+| Archivos (N = nuevo, M = modificado) |
+|---|
+| M `frontend/src/api/metaApi.ts` → `metasApi.ts` · M `frontend/src/App.tsx` · M `frontend/src/pages/FormularioPartida.tsx` · M `frontend/src/pages/ListaPartidas.tsx` · M `frontend/src/pages/DetalleVideojuego.tsx` · M `frontend/src/components/MetaSemanal.tsx` · M `frontend/tailwind.config.js` · M `frontend/src/styles.css` · M `DESIGN.md` · M `README.md` |

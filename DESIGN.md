@@ -27,22 +27,22 @@ cuaderno de bitácora que a un panel gamer estridente.
 | Token Tailwind | Variable CSS             | Hex       | Uso                                              |
 | -------------- | ------------------------ | --------- | ------------------------------------------------ |
 | `night`        | `--color-canvas`         | `#111315` | Fondo de la página y cabecera                    |
-| —              | `--color-surface`        | `#191b1a` | Fondo de paneles (`.panel`)                      |
+| `surface`      | `--color-surface`        | `#191b1a` | Fondo de paneles (`.panel`)                      |
 | —              | `--color-surface-raised` | `#20221f` | Superficies elevadas                             |
-| —              | —                        | `#141615` | Fondo de campos de formulario (`.field`)         |
+| `field`        | `--color-field`          | `#141615` | Fondo de campos de formulario (`.field`)         |
 | `line`         | `--color-border`         | `#30322d` | Bordes, separadores, filas de tabla              |
-| —              | `--color-copy`           | `#f1eddf` | Texto principal y titulares (blanco hueso)       |
+| `copy`         | `--color-copy`           | `#f1eddf` | Texto principal y titulares (blanco hueso)       |
 | `mist`         | `--color-muted`          | `#a5a59b` | Texto secundario, descripciones, etiquetas       |
 | `signal`       | `--color-progress`       | `#c8d96a` | Acento primario: progreso, acciones, foco        |
 | `earth`        | `--color-session`        | `#d99a5b` | Acento secundario: partidas, sesiones, género    |
 | `earth-light`  | —                        | `#e8b77f` | Texto sobre fondos `earth` translúcidos          |
+| `signal-light` | —                        | `#d5e783` | Estado *hover* del botón primario                |
+| `signal-ink`   | —                        | `#202316` | Texto oscuro sobre el botón primario `signal`    |
 
 Colores de apoyo de Tailwind usados de forma consistente:
 
 - `stone-200 / 300 / 400 / 600` — textos de etiquetas, navegación y placeholders.
 - `rose-200 / rose-400` — errores y acciones destructivas (siempre translúcido, nunca sólido).
-- `#202316` — texto oscuro sobre el botón primario `signal`.
-- `#d5e783` — estado *hover* del botón primario.
 
 ### 2.2 Significado de los acentos
 

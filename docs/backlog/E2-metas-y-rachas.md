@@ -158,7 +158,7 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 | E2-T06 | Funcionalidad | Servicio de metas e hitos | H1, H2, H3, H7, H8 | Backend | T03, T04, T05 |
 | E2-T07 | Funcionalidad | Integrar metas con videojuegos y partidas | H3, H4, H8 | Backend | T06 |
 | E2-T08 | Funcionalidad | Endpoints de meta, hitos y progreso | H1, H2, H5, H6, H7, H9 | Backend | T06 |
-| E2-T09 | Funcionalidad | Tipos y cliente `metaApi` del frontend | H1, H2, H5–H9 | Frontend | T08 |
+| E2-T09 | Funcionalidad | Tipos y cliente `metasApi` del frontend | H1, H2, H5–H9 | Frontend | T08 |
 | E2-T10 | Funcionalidad | Sección «Meta semanal»: fijar, cambiar y quitar la meta y ver el progreso semanal | H1, H2, H3, H5 | Frontend | T02, T09 |
 | E2-T11 | Funcionalidad | Racha y últimas 4 semanas en la interfaz | H6, H9 | Frontend | T10 |
 | E2-T12 | Funcionalidad | Hitos en la interfaz | H7, H8 | Frontend | T10 |
@@ -226,11 +226,11 @@ Además de la Definition of Done común, cada ticket tiene su DoD específica.
   - Ningún controlador pasa `req.body` crudo.
   - Cada ruta comprobada manualmente en local.
 
-#### E2-T09 · Funcionalidad · Tipos y `metaApi`
+#### E2-T09 · Funcionalidad · Tipos y `metasApi`
 - **Historias:** H1, H2, H5–H9 · **Depende de:** T08
 - **DoD:**
   - Los tipos de la spec del frontend (§3) están en `types.ts`.
-  - `frontend/src/api/metaApi.ts` sigue el patrón de `videojuegoApi.ts`, usa `VITE_API_URL` y propaga el mensaje de error de la API.
+  - `frontend/src/api/metasApi.ts` sigue el patrón de `videojuegoApi.ts`, usa `VITE_API_URL` y propaga el mensaje de error de la API.
   - `npm run build` pasa.
 
 #### E2-T10 · Funcionalidad · Sección «Meta semanal»

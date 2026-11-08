@@ -14,6 +14,7 @@
     --color-canvas: #111315;
     --color-surface: #191b1a;
     --color-surface-raised: #20221f;
+    --color-field: #141615;
     --color-border: #30322d;
     --color-copy: #f1eddf;
     --color-muted: #a5a59b;
@@ -82,7 +83,7 @@
 
 @layer components {
   .panel {
-    @apply rounded-2xl border border-line/90 bg-[#191b1a]/90 shadow-[0_18px_60px_rgba(0,0,0,0.14)];
+    @apply rounded-2xl border border-line/90 bg-surface/90 shadow-[0_18px_60px_rgba(0,0,0,0.14)];
   }
 
   .app-header {
@@ -106,15 +107,15 @@
   }
 
   .page-title {
-    @apply font-display text-3xl font-bold tracking-[-0.04em] text-[#f1eddf] sm:text-5xl;
+    @apply font-display text-3xl font-bold tracking-[-0.04em] text-copy sm:text-5xl;
   }
 
   .form-title {
-    @apply font-display text-3xl font-bold tracking-[-0.04em] text-[#f1eddf];
+    @apply font-display text-3xl font-bold tracking-[-0.04em] text-copy;
   }
 
   .section-title {
-    @apply font-display text-xl font-bold tracking-tight text-[#f1eddf];
+    @apply font-display text-xl font-bold tracking-tight text-copy;
   }
 
   .page-description {
@@ -150,7 +151,7 @@
   }
 
   .field {
-    @apply block w-full rounded-xl border border-line bg-[#141615] px-3.5 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 hover:border-stone-600 focus:border-signal/70 focus:ring-2 focus:ring-signal/10;
+    @apply block w-full rounded-xl border border-line bg-field px-3.5 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 hover:border-stone-600 focus:border-signal/70 focus:ring-2 focus:ring-signal/10;
   }
 
   select.field {
@@ -162,7 +163,7 @@
   }
 
   .primary-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-signal/40 bg-signal px-5 py-2.5 text-sm font-bold text-[#202316] shadow-[0_6px_24px_rgba(200,217,106,0.12)] transition duration-200 hover:-translate-y-0.5 hover:border-signal hover:bg-[#d5e783] hover:shadow-glow disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-signal/40 bg-signal px-5 py-2.5 text-sm font-bold text-signal-ink shadow-[0_6px_24px_rgba(200,217,106,0.12)] transition duration-200 hover:-translate-y-0.5 hover:border-signal hover:bg-signal-light hover:shadow-glow disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .secondary-button {
@@ -182,7 +183,7 @@
   }
 
   .stat-value {
-    @apply mt-3 font-display text-3xl font-bold tracking-tight text-[#f1eddf];
+    @apply mt-3 font-display text-3xl font-bold tracking-tight text-copy;
   }
 
   .status-badge {

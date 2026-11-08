@@ -87,7 +87,7 @@ La respuesta tiene esta forma:
 - **Frontend:** React, TypeScript, Vite y React Router.
 - **Configuración backend:** `backend/src/config/env.ts` lee y valida las variables de entorno; `backend/src/DBconnection.ts` se ocupa de conectar con MongoDB.
 - **Backend organizado en:** `models`, `routes`, `controllers`, `services` y `middlewares`.
-- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts`, `frontend/src/api/partidaApi.ts` y `frontend/src/api/metaApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
+- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts`, `frontend/src/api/partidaApi.ts` y `frontend/src/api/metasApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
 
 ## Funcionalidades
 
@@ -95,7 +95,7 @@ La respuesta tiene esta forma:
 - Consultar el detalle de un videojuego, sus logros, partidas y resumen calculado.
 - Crear, editar y eliminar videojuegos.
 - Marcar logros como obtenidos o pendientes.
-- Listar y filtrar partidas, ver su videojuego relacionado y eliminar sesiones.
+- Listar y filtrar partidas, ver su videojuego relacionado, editarlas y eliminarlas (también desde el historial del detalle).
 - Registrar una partida con fecha, duración, avance y notas.
 - Fijar, cambiar y quitar una meta semanal por videojuego, con progreso de la semana, racha, hitos y últimas 4 semanas (ver [Meta semanal](#meta-semanal)).
 - Mostrar estados de carga, error y contenido vacío en las vistas que dependen de la API.
@@ -112,6 +112,7 @@ El detalle de cada videojuego incluye la sección «Meta semanal», entre «Resu
 - **Hitos:** hasta 5 por meta, con descripción y porcentaje objetivo; se ven como «Pendiente», «Alcanzado» o «Alcanzado el 30 oct 2026». Eliminar un hito pide confirmación.
 - En juegos **completados o abandonados** el formulario de meta aparece deshabilitado.
 - Al eliminar un videojuego también se borran su meta semanal y sus hitos; la confirmación lo avisa.
+- **Refresco del progreso:** al registrar o editar una partida desde el detalle se vuelve a él y la sección se recarga; al eliminar una partida desde el historial del detalle, el resumen y la meta semanal se actualizan sin recargar la página.
 
 **Fechas:** las fechas de partida (`AAAA-MM-DD` guardadas a medianoche UTC) se formatean en UTC con `formatearFecha` (`frontend/src/utils/formato.ts`), para que no se vean un día antes en zonas horarias negativas como Ecuador. Las fechas en que se alcanza un hito son instantes reales y se muestran en hora de Ecuador (`America/Guayaquil`).
 
