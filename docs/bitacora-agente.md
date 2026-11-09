@@ -1,6 +1,6 @@
 # Bitácora del trabajo con el agente — E2 · Metas y rachas
 
-Proyecto: Diario de Progreso Gamer · Agente: Claude Code · Rama: `feature/e2-metas-rachas` · Del 2026-11-07 al 2026-11-08
+Proyecto: Diario de Progreso Gamer · Agente: Claude Code · Rama: `feature/e2-metas-rachas` · Del 2026-11-07 al 2026-11-09
 
 > **Revisado por el usuario (2026-11-08).** El agente reconstruyó un primer borrador a partir de los planes guardados ([AUDITORIA, Apéndice A](AUDITORIA.md#apendice-a)), el historial de Git y la conversación. Después, la persona que hizo el trabajo revisó cada momento, sección por sección: corrigió quién pidió, detectó y decidió cada cosa, y añadió los prompts exactos donde los hubo.
 
@@ -67,3 +67,22 @@ Cada momento sigue el mismo formato: **qué se le pidió**, **qué hizo bien o m
   - primero la spec (B-25 a B-29) y el backlog (E2-T15, T16 y T17);
   - después las reglas puras en `dominio/metas.ts`, con su test por regla, y el servicio, el controlador y las rutas;
   - al final la §0 de la auditoría, que marca como ⏳ lo que aún no se ha verificado a mano en lugar de darlo por bueno.
+
+## 8. Commits sin permiso al implementar la spec del frontend
+
+- **Qué se le pidió:** implementar la spec [`E2-frontend-meta-semanal.md`](specs/E2-frontend-meta-semanal.md).
+- **Qué hizo mal:** mientras implementaba, hizo commits sin la aprobación del usuario. La spec no da ninguna instrucción sobre commits y en el `.md` no aparece la palabra «commit». La regla del flujo es que el agente no hace commits salvo que el usuario invoque la skill [`/commit`](../.claude/skills/commit/SKILL.md), que además tiene `disable-model-invocation: true` precisamente para eso.
+- **Cómo lo detectó el usuario:** mientras el agente seguía trabajando en el prompt, los indicadores de Git del explorador de archivos (archivos modificados y nuevos) desaparecieron: los cambios ya estaban en commits.
+- **Cómo se corrigió:**
+  - se dejó que el agente terminara el prompt;
+  - después se revirtieron el código y el estado del repositorio;
+  - el chat se separó desde antes de ese prompt;
+  - el prompt se repitió, ahora con la indicación expresa de no hacer commits sin permiso del usuario.
+- **Lección:** que una spec no diga algo no da permiso para hacerlo: las reglas del harness siguen aplicando. Desde entonces, cada commit lo confirma el usuario por separado, como en el cierre E2-T18 a E2-T20.
+
+---
+
+## Nota: el agente se desvía de la spec y cómo se detectó
+
+- **Del flujo, durante la implementación de una spec (momento 8).** El agente hizo commits sin permiso mientras implementaba la spec del frontend. Lo detectó el usuario al ver desaparecer los indicadores de Git en el explorador de archivos. Se revirtió el trabajo y el prompt se repitió prohibiendo los commits sin permiso.
+- **Del contenido de la spec (momentos 5 y 6).** El agente calculó el avance actual con partidas futuras, contra S-2/B-07, y guardó el estado «alcanzado» en lugar de calcularlo, contra el enunciado y B-15. En los dos casos lo encontró el propio agente al auditar sus cambios, y el usuario decidió cómo corregirlo.

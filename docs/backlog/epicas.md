@@ -5,7 +5,7 @@ Producto: Diario de Progreso Gamer · [PRD](../prd/PRD-diario-progreso-gamer.md)
 | Épica | Nombre | Estado | Detalle |
 |---|---|---|---|
 | E1 | Registro de videojuegos, partidas y logros | Terminada (Proyecto 3), en producción | Esta página y el [README](../../README.md) |
-| E2 | Metas y rachas | Propuesta, lista para implementar | [E2-metas-y-rachas.md](E2-metas-y-rachas.md) |
+| E2 | Metas y rachas | Terminada (2026-11-08), en producción desde el 2026-11-09 (PR #3) | [E2-metas-y-rachas.md](E2-metas-y-rachas.md) |
 
 ---
 

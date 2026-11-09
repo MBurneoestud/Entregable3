@@ -230,3 +230,71 @@ El frontend y el backend se despliegan como servicios separados. Configura las v
 - **CORS:** el backend habilita CORS para las solicitudes del frontend.
 
 Las URLs públicas actuales están al inicio de este documento. Los valores privados del panel de Render no se almacenan en Git.
+
+## Cómo trabajamos con el agente
+
+La épica E2 se construyó con un agente de IA (Claude Code) dentro de un *harness* preparado para este repositorio, siguiendo Spec-Driven Development: ninguna funcionalidad se implementa sin una spec en `docs/specs/`.
+
+### Harness
+
+| Pieza | Archivo | Para qué sirve |
+|---|---|---|
+| Memoria del proyecto | [`AGENTS.md`](AGENTS.md) | Proyecto, stack, estructura, comandos, convenciones y reglas: nunca leer ni modificar `.env`, nada sin spec, `npm test` antes de terminar. |
+| Punto de entrada | [`CLAUDE.md`](CLAUDE.md) | Una sola línea, `@AGENTS.md`. |
+| Skill | [`.claude/skills/commit/SKILL.md`](.claude/skills/commit/SKILL.md) | `/commit`: commit en Conventional Commits y en español a partir de lo que está en staging. Lleva `disable-model-invocation: true`: el agente no puede hacer commits por su cuenta. |
+| Hook `PostToolUse` | [`.claude/hooks/formatear.js`](.claude/hooks/formatear.js) | Formatea con Prettier cada archivo `.ts`, `.tsx`, `.js`, `.json` o `.css` que el agente crea o edita. |
+| Hook `PreToolUse` | [`.claude/hooks/proteger-env.js`](.claude/hooks/proteger-env.js) | Bloquea con código 2 cualquier lectura o edición de `.env` o `.env.*` (salvo `.env.example`). |
+| Sistema de diseño | [`DESIGN.md`](DESIGN.md) | Colores, tipografía, espaciado, componentes, tono, accesibilidad y «No hacemos». Los estilos salen de `tailwind.config.js` y `styles.css`. |
+
+Los hooks están registrados en [`.claude/settings.json`](.claude/settings.json); la captura [`Evidencia_Hooks.png`](Evidencia_Hooks.png) y [AUDITORIA §5](docs/AUDITORIA.md#5-los-hooks-de-claude-code-funcionan) muestran que funcionan.
+
+### Flujo seguido
+
+```
+diagnóstico → harness → PRD → épicas → historias → criterios → tickets → specs → código con tests → auditoría
+```
+
+1. **Diagnóstico** (plan mode): el agente leyó el código, el README, los tests y el video del Proyecto 3. La persona decidió qué bloqueaba E2 y qué se difería.
+2. **Harness:** `AGENTS.md`, `CLAUDE.md`, la skill, los hooks y `DESIGN.md`.
+3. **PRD y épicas** (plan mode): la ficha de hechos se pegó tal cual. El agente buscó los huecos y la persona tomó cada decisión de producto.
+4. **Backlog:** historias «Como / quiero / para», criterios DADO / CUANDO / ENTONCES y tickets con tipo, Definition of Done y dependencias.
+5. **Specs** de backend y frontend, con reglas DEBE / NO DEBE, criterio → verificación y ticket → archivos, commiteadas antes del código.
+6. **Backend por tickets** (plan mode): funciones puras de dominio con tests y pruebas con curl (sin partidas, racha rota, 400, 404 y 409).
+7. **Frontend** según la spec y `DESIGN.md`, con revisión de diseño.
+8. **Deuda técnica** pagada con el ciclo criterio → test → código → verificación.
+9. **Auditoría**, despliegue en Render y pull request.
+
+Cada commit lo confirma la persona (skill `/commit` o confirmación expresa); el agente no hace commits por su cuenta.
+
+### Dónde está cada documento
+
+| Documento | Ruta |
+|---|---|
+| Diagnóstico del Proyecto 3 | [`docs/diagnostico.md`](docs/diagnostico.md) |
+| PRD (con los 8 huecos resueltos) | [`docs/prd/PRD-diario-progreso-gamer.md`](docs/prd/PRD-diario-progreso-gamer.md) |
+| Épicas E1 y E2 | [`docs/backlog/epicas.md`](docs/backlog/epicas.md) |
+| Historias, criterios, tickets y deuda técnica de E2 | [`docs/backlog/E2-metas-y-rachas.md`](docs/backlog/E2-metas-y-rachas.md) |
+| Spec del backend (Meta y progreso semanal) | [`docs/specs/E2-backend-meta-y-progreso-semanal.md`](docs/specs/E2-backend-meta-y-progreso-semanal.md) |
+| Spec del frontend (sección «Meta semanal») | [`docs/specs/E2-frontend-meta-semanal.md`](docs/specs/E2-frontend-meta-semanal.md) |
+| Auditoría por criterio, pruebas con curl, despliegue y trazabilidad | [`docs/AUDITORIA.md`](docs/AUDITORIA.md) |
+| Revisión de diseño contra `DESIGN.md` | [`docs/revision-diseno.md`](docs/revision-diseno.md) |
+| Bitácora del trabajo con el agente | [`docs/bitacora-agente.md`](docs/bitacora-agente.md) |
+| Guion de la demo | [`docs/guion-demo.md`](docs/guion-demo.md) |
+
+### Ejemplo de trazabilidad de punta a punta
+
+La decisión «una meta superada muestra el porcentaje real» recorre toda la cadena:
+
+| Paso | Dónde |
+|---|---|
+| PRD | Hueco **H-5**: 7 h con una meta de 5 h → 140 %, sin límite ([PRD §7.2](docs/prd/PRD-diario-progreso-gamer.md)) |
+| Historia y criterio | **E2-H5**, criterio **H5-C2**: «7 de 5 h · 140 %», la barra llena sin salirse y «Meta cumplida» ([backlog](docs/backlog/E2-metas-y-rachas.md)) |
+| Ticket | **E2-T05** (cálculo puro) y **E2-T10** (barra en la interfaz) |
+| Spec | **B-09** (backend) y **F-05** (frontend) |
+| Test | `test/dominio/progreso.test.js`, «caso 6: 7 h con una meta de 5 h → 140 % y cumplida»; `test/frontend/formato.test.js` (`anchoBarra(140)` → 100) |
+| Código | `backend/src/dominio/progreso.ts` (`porcentajeHoras` sin límite, B-09) y `frontend/src/utils/formato.ts` (`anchoBarra`) |
+| Auditoría | Filas «H5-C2, B-09» y «H5-C2, F-05» de [AUDITORIA §0](docs/AUDITORIA.md#0-auditoría-por-criterio) |
+
+### Demo
+
+El guion está en [`docs/guion-demo.md`](docs/guion-demo.md). Enlace al video: *pendiente de grabación*.

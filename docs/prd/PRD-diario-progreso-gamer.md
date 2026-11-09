@@ -1,7 +1,7 @@
 # PRD — Diario de Progreso Gamer
 
 Versión 2 (añade la épica E2 · Metas y rachas) · Fecha: 2026-11-07
-Estado: E1 en producción · E2 propuesta, lista para refinar
+Estado: E1 y E2 en producción (E2 desde el 2026-11-09)
 Documentos relacionados: [épicas](../backlog/epicas.md) · [historias y tickets de E2](../backlog/E2-metas-y-rachas.md) · [diagnóstico](../diagnostico.md)
 
 > Este documento describe **qué** debe hacer el producto y **por qué**. El **cómo** está en las specs de `docs/specs/`.
@@ -13,7 +13,7 @@ El Diario de Progreso Gamer es un diario personal en la web para llevar el regis
 | Épica | Nombre | Estado |
 |---|---|---|
 | E1 | Registro de videojuegos, partidas y logros | Existente (Proyecto 3), en producción |
-| E2 | Metas y rachas | Nueva (esta versión) |
+| E2 | Metas y rachas | Nueva en esta versión; en producción |
 
 ## 2. Problema
 
@@ -94,7 +94,7 @@ Cómo se mide en E2: el detalle del juego muestra «X de N semanas con meta cump
 | H-3 | **Partida que cruza la medianoche:** ¿a qué día pertenece? | **Al día en que empezó**, que es el que la persona elige al registrarla. Cuenta entera en ese día, porque la partida no guarda hora de inicio ni de fin. | Partida del martes de 23:00 a 01:00 → 2 h el martes. |
 | H-4 | **Cambio de meta a mitad de semana:** ¿el porcentaje de la semana se calcula con la meta nueva o con la anterior? | **Con la meta nueva.** Cada semana se evalúa con la meta que estaba vigente al cerrarse (domingo); para la semana en curso, es la meta actual. La meta anterior no se pierde: se guarda para evaluar las semanas en que estuvo vigente. | Meta de 5 h; el miércoles se cambia a 8 h; con 6 h jugadas → «6 de 8 h · 75 %». |
 | H-5 | **Meta superada:** si se juegan 7 horas con una meta de 5, ¿el porcentaje es 140 % o se limita a 100 %? | **140 %**, el valor real y sin límite. La barra de progreso se llena hasta el 100 % y no se sale. | «7 de 5 h · 140 %» con la barra llena. |
-| H-6 | **Hito ya alcanzado:** si después se registra una partida con menos avance, ¿el hito deja de estar alcanzado? | **Sí.** El enunciado fija que un hito está alcanzado cuando `porcentajeAvanceActual ≥ porcentajeObjetivo` (sin partidas, ninguno), así que el estado **se calcula** con el avance actual. Lo que se guarda es la fecha de la primera vez que se alcanzó (`alcanzadoEn`), como historial: no se borra aunque el avance baje y se vuelve a mostrar si se alcanza de nuevo. | Hito «50 %» alcanzado el 30/10; el 2/11 se registra un 45 % → «Pendiente»; el 5/11 un 60 % → «Alcanzado el 30 oct 2026». |
+| H-6 | **Hito ya alcanzado:** si después se registra una partida con menos avance, ¿el hito deja de estar alcanzado? | **Sí.** Un hito está alcanzado mientras el avance actual del juego sea igual o mayor que su objetivo (sin partidas, ninguno lo está), así que el estado depende siempre del avance actual. Lo que se recuerda es la fecha en que se alcanzó por primera vez, como historial: no se pierde aunque el avance baje y se vuelve a mostrar si se alcanza de nuevo. | Hito «50 %» alcanzado el 30/10; el 2/11 se registra un 45 % → «Pendiente»; el 5/11 un 60 % → «Alcanzado el 30 oct 2026». |
 | H-7 | **Videojuego completado o abandonado:** ¿puede tener meta activa? | **No.** Al pasar a completado o abandonado, su meta se archiva sola y no se puede fijar otra mientras siga en ese estado. Si vuelve a «jugando» o «pausado», la meta anterior no se recupera, pero se puede fijar una nueva. «Pausado» no afecta a la meta. | Se marca «Completado» → la sección muestra el formulario deshabilitado con el motivo. |
 | H-8 | **Eliminar un videojuego con meta:** ¿qué pasa con su meta y sus hitos? | **Se eliminan también** su meta actual, sus metas anteriores y todos sus hitos. La confirmación de borrado lo avisa. | «¿Seguro que quieres eliminar "Hades"? También se borrarán su meta semanal y sus hitos.» |
 

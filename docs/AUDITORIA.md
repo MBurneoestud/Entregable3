@@ -1,6 +1,6 @@
 # Auditoría — evidencia que no se ve en el historial de git
 
-Proyecto: Diario de Progreso Gamer · Rama: `feature/e2-metas-rachas` · Fecha de corte: 2026-11-08
+Proyecto: Diario de Progreso Gamer · Rama: `feature/e2-metas-rachas` · Fecha de corte: 2026-11-09 (primera versión: 2026-11-08)
 
 El historial de git solo muestra **qué** cambió y **cuándo** se hizo el commit. No muestra los planes hechos en plan mode, las ejecuciones de tests, las pruebas manuales contra la API, si los hooks funcionan, las decisiones tomadas en la conversación con el agente ni el trabajo que aún no está en un commit. Este documento reúne esa evidencia. El contenido íntegro de cada archivo de evidencia está en los [apéndices](#apendices).
 
@@ -104,7 +104,13 @@ Ninguna fila se marca ✅ sin evidencia registrada.
 | F-01 | Revisión | ✅ | `grep -rn "fetch(" frontend/src/pages frontend/src/components` → sin resultados |
 | F-03 | Revisión | ✅ | `MetaSemanal.tsx` no usa `Math.`, `/ 60` ni `* 100`: solo formatea los datos de `/progreso-semanal` |
 | F-04, F-12 | Revisión | ✅ (código) · ⏳ visual | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales |
-| Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08) |
+| Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08; repetido el 2026-11-09 tras `67c3fea`) |
+| F-16 | Revisión | ✅ | `grep -rn "metaApi" frontend/src` (sin contar `metasApi`) → sin resultados (2026-11-09) |
+| F-17 | Manual (navegador) | ⏳ pendiente | Checklist E2-T20, paso 13 |
+| F-18 | Revisión + Manual | ✅ (código) · ⏳ navegador | `App.tsx:21` tiene la ruta `/partidas/:id/editar` con `FormularioPartida`; falta el recorrido (checklist, paso 13) |
+| F-19 | Manual (navegador) | ⏳ pendiente | Checklist E2-T20, paso 13 |
+| F-20 | Revisión | ✅ | `grep -rn "\[#" frontend/src` → sin resultados (2026-11-09) |
+| F-21 | Revisión + Build + Manual | ✅ (revisión y build) · ⏳ visual | [revision-diseno.md](revision-diseno.md): 20 reglas, 4 desviaciones corregidas en `67c3fea`, ninguna abierta; build sin errores; falta el recorrido visual (checklist, paso 21) |
 
 ### 0.3 Cómo cerrar los pendientes
 
@@ -123,7 +129,9 @@ curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                 
 curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                                                           # 409 (B-29, H2-C4)
 ```
 
-**Frontend.** Recorrer en `http://localhost:5173` las filas ⏳ de §0.2 y anotar en la columna de evidencia la fecha y lo observado (o una captura).
+**Backend:** cerrado el 2026-11-09 con la segunda ronda de curl (§4.1, casos #35 a #81, E2-T20).
+
+**Frontend.** Recorrer en `http://localhost:5173` o en Render las filas ⏳ de §0.2, siguiendo el checklist de E2-T20, y anotar en la columna de evidencia la fecha y lo observado (o una captura).
 
 ---
 
@@ -139,9 +147,11 @@ curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                 
 | 4 | Pruebas manuales del endpoint con curl (paso 6) | Son peticiones HTTP contra la API en local, y los datos se borraron después | [Apéndice C](#apendice-c), [Apéndice D](#apendice-d) |
 | 5 | Los hooks de Claude Code funcionan | git versiona el código de los hooks, pero no que se ejecuten | [Apéndice E](#apendice-e), [Evidencia_Hooks.png](../Evidencia_Hooks.png) |
 | 6 | Decisiones del usuario en la conversación | Solo existen en la conversación con el agente | §6 |
-| 7 | Trabajo sin commit a la fecha de corte | No forma parte del historial | §7 |
-| 8 | Contenido del video de demostración | git guarda el binario, no lo que muestra | §8 |
-| 9 | Limitaciones conocidas de esta evidencia | — | §9 |
+| 7 | Despliegue: URLs públicas y comprobación en producción | git no muestra lo que está desplegado | §7 |
+| 8 | Contenido del video de demostración y guion de la demo de E2 | git guarda el binario, no lo que muestra | §8, [guion-demo.md](guion-demo.md) |
+| 9 | Limitaciones conocidas de esta evidencia, incluida la trazabilidad commit → ticket | — | §9 |
+| — | Revisión de diseño contra DESIGN.md (E2-T19) | — | [revision-diseno.md](revision-diseno.md) |
+| — | Bitácora del trabajo con el agente | — | [bitacora-agente.md](bitacora-agente.md) |
 
 ---
 
@@ -294,20 +304,29 @@ La skill [`/commit`](../.claude/skills/commit/SKILL.md) está versionada. `.clau
 | Plan 5 (2026-11-08) | `alcanzado` se calcula con el avance actual; `alcanzadoEn` guarda la primera vez y no se borra | spec B-15, B-23 |
 | Sesión del paso 6 (2026-11-08) | Implementar el 409 (hito repetido y E11000), primero en la spec, y documentar las pruebas manuales. El usuario aprobó la propuesta («begin») | spec B-24, §2 y §4 de este documento |
 
-## 7. Trabajo sin commit a la fecha de corte
+## 7. Despliegue y estado del trabajo
 
-A 2026-11-08, todo lo siguiente está en el árbol de trabajo pero **no** en ningún commit:
+**Ya no hay trabajo sin commit.** La alineación con el enunciado y la regla B-24, que el 2026-11-08 estaban solo en el árbol de trabajo, entraron en `b4f3ce5`. La rama `feature/e2-metas-rachas` se integró a `main` con el [PR #3](https://github.com/MBurneoestud/Entregable3/pull/3) el 2026-11-09. El cierre (E2-T18 a E2-T20) va en la misma rama, en commits que citan su ticket, y se integra con un segundo PR.
 
-- **Alineación con el enunciado** ([plan 5](#a-5) y cambios de nombres):
-  - campos renombrados `horasPorSemana` → `horasSemanales`, `nombre` → `descripcion` y `objetivo` → `porcentajeObjetivo`;
-  - máximo de 100 h por semana (antes 168);
-  - ruta `/progreso` → `/progreso-semanal`, que devuelve el objeto sin envoltorio;
-  - `horasSemana` con 1 decimal y `alcanzado` calculado;
-  - `eliminarPartida` vuelve a calcular los hitos.
+**URLs públicas (Render; la base de datos sigue en MongoDB Atlas):**
 
-  Archivos: `meta.model.ts`, `meta.controller.ts`, `meta.routes.ts`, `meta.service.ts`, `partida.service.ts`, `dominio/progreso.ts`, `progreso.test.js`, `meta.test.js`, specs, backlog, PRD y README.
-- **B-24 (409):** `dominio/progreso.ts`, `meta.service.ts`, `errorHandler.ts`, `test/middlewares/errorHandler.test.js`, specs y README.
-- **Evidencia:** este documento.
+- Frontend: https://diario-gamer-burneo.onrender.com/
+- API: https://diario-gamer-api-burneo.onrender.com/ (salud: `/api/salud`)
+
+**Comprobación en producción (2026-11-09, solo peticiones de lectura, sin crear datos):**
+
+| Comprobación | Resultado |
+|---|---|
+| `GET /api/salud` | 200 `{"estado":"ok"}` |
+| `GET /api/videojuegos/:id/progreso-semanal` | 200 con el objeto de la spec §5 (`semana`, `meta`, `horasSemana`, `porcentajeHoras`, `diasJugadosSemana`, `rachaActual`, `mejorRacha`, `hitos` con `alcanzado`, `ultimas4`) |
+| `GET /api/videojuegos/:id/metas` | 200 `{ metas: [...] }` (CRUD de E2-T15 desplegado) |
+| `GET /api/videojuegos/abc/progreso-semanal` | 400 «"abc" no es un id válido para el campo "_id"» |
+| `GET /api/videojuegos/507f1f77bcf86cd799439011/progreso-semanal` | 404 «No existe un videojuego con id …» |
+| `GET /api/metas/abc` | 400 «"abc" no es un id válido para el campo "metaId"» |
+| JS del frontend publicado | contiene «Meta semanal», «Mejor racha», «Quitar meta», «Editar partida» y la URL de la API de Render |
+| `GET /videojuegos/:id` (ruta profunda del frontend) | 200 (rewrite SPA activo) |
+
+Las correcciones de diseño de `67c3fea` (E2-T19) llegan a producción cuando se integre el PR del cierre.
 
 ## 8. Contenido del video de demostración
 
@@ -320,12 +339,27 @@ A 2026-11-08, todo lo siguiente está en el árbol de trabajo pero **no** en nin
 
 También deja ver un bug: una partida registrada el 21/10/2026 aparece como «20 oct 2026» (problema #1 del diagnóstico). El video no cubre errores 400 o 404, ni eliminar un juego que tenga partidas. Es anterior a E2, así que no incluye metas ni rachas.
 
+La demo de E2 sigue el guion de [`docs/guion-demo.md`](guion-demo.md) (máximo 6 minutos, flujo de la fase 10). El enlace al video se añade al README cuando esté grabado.
+
 ## 9. Limitaciones conocidas de esta evidencia
 
 - **Orden de los tests en E2-T01…T05.** Solo el plan 4 indica que los tests iban primero; git no lo demuestra (§2). El ciclo rojo → verde quedó registrado únicamente para B-24.
 - **Sin tests automatizados en T06–T08** (servicio, integración y endpoints). Esa parte se cubre con las pruebas manuales de §4, no con `npm test`.
 - **Partidas huérfanas.** Eliminar un videojuego borra sus metas (B-17), pero no sus partidas (problema #2 del diagnóstico, todavía abierto; ver [Deuda técnica](backlog/E2-metas-y-rachas.md#deuda-tecnica)). Por eso la limpieza de §4 tuvo que borrarlas a mano.
 - **Sin evidencia histórica de los hooks.** La prueba de los hooks (§5) es de 2026-11-08; no hay registro de que funcionaran en sesiones anteriores.
+- **Trazabilidad en Git: commits sin ticket y specs junto con su código.** Por decisión del responsable del repositorio, el historial de `main` no se reescribe: forzar un push rompería el PR #3 ya integrado y los hashes que citan estos documentos. Las desviaciones quedan documentadas aquí.
+
+  | Commit | Mensaje | Ticket(s) real(es) | Desviación |
+  |---|---|---|---|
+  | `6cb3b0a` | docs: añadir PRD, backlog y specs de E2 y ajustar harness | (fases 3, 4 y 5) | El PRD, las épicas, el backlog y las dos specs van en un solo commit, así que el historial no separa las fases 3, 4 y 5. Sí van **antes** que todo el código de E2 (`07249f0` en adelante). |
+  | `b4f3ce5` | feat(E2): alinear metas con la spec y endpoint progreso-semanal | T04–T08 (alineación con el enunciado y B-24) | No cita ticket. La ampliación de la spec (B-23, B-24 y los nombres de campos) va en el mismo commit que su código. |
+  | `798de52` | fix(E2): excluir partidas futuras del avance actual (B-07) | T03 / T05 (deuda B-07) | No cita ticket. El código va antes que el test (`1a168f7`). |
+  | `1a168f7` | test(E2): cubrir B-07 en avance y alinear spec y diagnóstico | T03 / T05 (deuda B-07) | No cita ticket. |
+  | `9efb900` | feat(E2): añadir sección Meta semanal al detalle del videojuego | T02, T09, T10, T11, T12, T13 | No cita tickets y junta varios en un solo commit; el arreglo #1 del frontend (T02) va mezclado con funcionalidad. La spec (T02, T09–T13) sí es anterior (`6cb3b0a`). |
+  | `ae7c06d` | feat(E2): editar partidas y refrescar progreso semanal en el detalle | T09, T10, T12 (F-16 a F-20) | No cita tickets. La ampliación §9 de la spec del frontend va en el mismo commit que su código. |
+  | `045e599` | feat(E2-T15..T17): añadir CRUD de Meta, auditoría y bitácora | T15, T16, T17 | Cita tickets, pero las reglas B-25 a B-29 de la spec van en el mismo commit que su código. |
+
+  **Corrección aplicada en el cierre (E2-T18 a T20):** cada spec o ampliación se commitea sola y antes que su código (`50eee0b`, con F-21 y los tickets T18–T20, va antes que la corrección de código `67c3fea`), y todos los mensajes citan su ticket. La columna «Commit(s)» de la [tabla de tickets](backlog/E2-metas-y-rachas.md) reconstruye la relación commit → ticket.
 
 ---
 

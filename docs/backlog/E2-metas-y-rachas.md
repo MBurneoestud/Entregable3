@@ -120,8 +120,8 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 **Como** persona usuaria **quiero** que mis hitos se marquen solos como alcanzados cuando llego a su avance **para** ver mis logros sin tener que marcarlos.
 
 - **H8-C1** · **DADO** un hito pendiente con porcentaje objetivo 50 **CUANDO** registro una partida con avance del 55 % **ENTONCES** el hito aparece «Alcanzado el» con la fecha de hoy.
-- **H8-C2** · **DADO** un hito alcanzado el 30 oct 2026 **CUANDO** registro una partida con un avance menor **ENTONCES** pasa a «Pendiente» y su `alcanzadoEn` (30 oct 2026) se conserva.
-- **H8-C3** · **DADO** un hito alcanzado **CUANDO** borro la partida con la que se alcanzó **ENTONCES** el estado se recalcula con el nuevo avance actual (sin partidas, ningún hito alcanzado) y `alcanzadoEn` se conserva.
+- **H8-C2** · **DADO** un hito alcanzado el 30 oct 2026 **CUANDO** registro una partida con un avance menor **ENTONCES** pasa a «Pendiente» y se conserva la fecha en que se alcanzó por primera vez (30 oct 2026).
+- **H8-C3** · **DADO** un hito alcanzado **CUANDO** borro la partida con la que se alcanzó **ENTONCES** el estado se recalcula con el nuevo avance actual (sin partidas, ningún hito alcanzado) y se conserva la fecha en que se alcanzó por primera vez.
 - **H8-C4** · **DADO** dos partidas el mismo día, la primera con 55 % y la segunda, registrada después, con 45 % **CUANDO** se calcula el avance actual **ENTONCES** el avance actual es 45 %.
 
 ### E2-H9 — Ver las últimas 4 semanas
@@ -171,7 +171,7 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 | E2-T16 | Chore | Limpiar `.gitignore` (diagnóstico #6) | — | — | — | ✅ Terminado | `045e599` |
 | E2-T17 | Documentación | Auditoría por criterio, bitácora del agente y deuda técnica | Todas | Ambas | T15, T16 | ✅ Terminado | `045e599` |
 | E2-T18 | Documentación | Cierre tras el despliegue: README «Cómo trabajamos con el agente», estados de los documentos, AGENTS.md, URLs y trazabilidad commit → ticket | Todas | Ambas | T17 | ⏳ En curso | — |
-| E2-T19 | Calidad | Revisión de diseño de la sección «Meta semanal» contra `DESIGN.md` y corrección de desviaciones | H1–H9 (interfaz) | Frontend | T10–T13 | ⏳ En curso | — |
+| E2-T19 | Calidad | Revisión de diseño de la sección «Meta semanal» contra `DESIGN.md` y corrección de desviaciones | H1–H9 (interfaz) | Frontend | T10–T13 | ✅ Terminado | `af535fe`, `67c3fea` |
 | E2-T20 | Verificación | Cerrar los criterios ⏳ de la auditoría: pruebas con curl en local y recorrido en el navegador | Todas | Ambas | T15, T19 | ⏳ En curso | — |
 
 \* Commit sin el id del ticket en el mensaje. La correspondencia se reconstruyó a partir de los archivos que cambia cada commit; ver [AUDITORIA §9](../AUDITORIA.md#9-limitaciones-conocidas-de-esta-evidencia).

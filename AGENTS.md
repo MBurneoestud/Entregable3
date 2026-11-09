@@ -19,11 +19,13 @@ API REST para registrar progreso en videojuegos, partidas individuales y logros.
 - `backend/src/routes/` — routers de Express
 - `backend/src/controllers/` — controladores (manejo de `req` / `res`)
 - `backend/src/services/` — lógica de negocio y acceso a datos (p. ej. el resumen de progreso)
+- `backend/src/dominio/` — funciones puras sin base de datos (fechas, progreso semanal, racha, hitos, reglas de meta)
 - `backend/src/middlewares/` — `requestId`, `logger` y `errorHandler`
-- `frontend/src/pages/` — páginas de React
+- `frontend/src/pages/` y `frontend/src/components/` — páginas y componentes de React (`MetaSemanal.tsx`)
 - `frontend/src/api/` — servicios que llaman a la API (las páginas no usan `fetch` directamente)
-- `frontend/src/types.ts` — tipos compartidos del frontend
-- `docs/` — documentación (`diagnostico.md`)
+- `frontend/src/utils/` — utilidades puras de formato; `frontend/src/types.ts` — tipos compartidos
+- `test/` — tests con `node:test` + `tsx` (`cd backend && npm test`)
+- `docs/` — `diagnostico.md`, `prd/`, `backlog/`, `AUDITORIA.md`, `revision-diseno.md`, `bitacora-agente.md`
 - `docs/specs/` — especificaciones de cada funcionalidad
 
 ## Comandos
