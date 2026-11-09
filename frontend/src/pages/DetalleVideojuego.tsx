@@ -164,7 +164,7 @@ export function DetalleVideojuego() {
     return (
       <MarcoPagina>
         <div role="status" className="loading-state">
-          <span className="loading-dot" />
+          <span aria-hidden="true" className="loading-dot" />
           Cargando videojuego...
         </div>
       </MarcoPagina>
@@ -218,7 +218,7 @@ export function DetalleVideojuego() {
         <section className="page-hero p-7 sm:p-10">
           <div
             aria-hidden="true"
-            className="absolute -right-16 -top-24 -z-10 h-80 w-80 rounded-full bg-gradient-to-br from-signal/10 to-earth/15 blur-2xl"
+            className="absolute -right-16 -top-24 -z-10 h-80 w-80 rounded-full bg-gradient-to-br from-signal/10 to-earth/10 blur-2xl"
           />
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <div>
@@ -288,12 +288,12 @@ export function DetalleVideojuego() {
             <p className="stat-value">
               {resumen?.porcentajeAvanceActual == null
                 ? "—"
-                : `${resumen.porcentajeAvanceActual}%`}
+                : `${resumen.porcentajeAvanceActual} %`}
             </p>
           </div>
           <div className="panel p-5">
             <p className="stat-label">Última partida</p>
-            <p className="mt-3 text-lg font-bold text-white">
+            <p className="mt-3 text-lg font-bold text-copy">
               {resumen?.ultimaPartida
                 ? formatearFecha(resumen.ultimaPartida)
                 : "Sin partidas"}
@@ -313,7 +313,7 @@ export function DetalleVideojuego() {
             <dl className="mt-4 divide-y divide-line">
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Plataforma</dt>
-                <dd className="text-right text-sm font-semibold text-white">
+                <dd className="text-right text-sm font-semibold text-copy">
                   {videojuego.plataforma === "Movil"
                     ? "Móvil"
                     : (videojuego.plataforma ?? "Sin especificar")}
@@ -321,7 +321,7 @@ export function DetalleVideojuego() {
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Género</dt>
-                <dd className="text-right text-sm font-semibold text-white">
+                <dd className="text-right text-sm font-semibold text-copy">
                   {videojuego.genero
                     ? etiquetasGenero[videojuego.genero]
                     : "Sin especificar"}
@@ -329,7 +329,7 @@ export function DetalleVideojuego() {
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Estado</dt>
-                <dd className="text-right text-sm font-semibold text-white">
+                <dd className="text-right text-sm font-semibold text-copy">
                   {videojuego.estado
                     ? etiquetasEstado[videojuego.estado]
                     : "Sin especificar"}
@@ -337,7 +337,7 @@ export function DetalleVideojuego() {
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Añadido</dt>
-                <dd className="text-right text-sm font-semibold text-white">
+                <dd className="text-right text-sm font-semibold text-copy">
                   {formatearFecha(videojuego.createdAt)}
                 </dd>
               </div>
@@ -383,7 +383,7 @@ export function DetalleVideojuego() {
                     <label
                       htmlFor={`logro-${indice}`}
                       className={`flex-1 text-sm ${
-                        logro.obtenido ? "text-stone-300" : "text-white"
+                        logro.obtenido ? "text-stone-300" : "text-copy"
                       }`}
                     >
                       {logro.nombre}
@@ -436,7 +436,7 @@ export function DetalleVideojuego() {
                   <span className="activity-marker" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-copy">
                         {formatearFecha(partida.fecha)}
                       </p>
                       <span className="text-xs font-semibold text-signal">
