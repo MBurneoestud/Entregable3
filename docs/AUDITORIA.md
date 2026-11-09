@@ -78,39 +78,41 @@ Ninguna fila se marca ✅ sin evidencia registrada.
 
 | Criterio / regla | Cómo se verificó | Resultado | Evidencia |
 |---|---|---|---|
-| H0-C1, F-02 | Auto + Manual | ✅ auto · ⏳ manual | `test/frontend/formato.test.js` (`formatearFecha` → «21 oct 2026») |
-| H1-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C2, F-08 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C5, F-15 | Manual (navegador) | ⏳ pendiente | Los mensajes del backend están verificados en Curl #18–#20 |
-| H2-C1, F-08 | Manual (navegador) | ⏳ pendiente | — |
-| H2-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H3-C2, H3-C5, F-06 | Manual (navegador) | ⏳ pendiente | — |
-| H3-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H4-C2, F-09 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C2, F-05 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`anchoBarra` limita a 100) |
-| H5-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C8, F-11 | Manual (navegador) | ⏳ pendiente | — |
-| H6-C1 … H6-C3, H6-C5, F-14 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`textoRacha`) |
-| H7-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C2, H7-C4 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C3, F-07 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C5 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C6, F-07 | Manual (navegador) | ⏳ pendiente | — |
-| H8-C1, F-10 | Manual (navegador) | ⏳ pendiente | — |
-| H9-C1, H9-C5, F-13 | Manual (navegador) | ⏳ pendiente | — |
-| H9-C2 | Manual (navegador) | ⏳ pendiente | — |
+| H0-C1, F-02 | Auto + Navegador | ✅ | `formato.test.js` (`formatearFecha` → «21 oct 2026»); recorrido, paso 1: la partida del 21/10/2026 se ve «21 oct 2026» en la lista y el detalle |
+| H1-C1 | Navegador | ✅ | Recorrido, paso 4 |
+| H1-C2, F-08 | Navegador | ✅ | Recorrido, paso 16: aviso de archivado y la barra pasa a «de 8 h» |
+| H1-C3 | Navegador | ✅ | Recorrido, paso 16: los hitos siguen iguales y el alcanzado conserva su fecha |
+| H1-C5, F-15 | Navegador | ✅ | Recorrido, paso 3 (0 h, 101 h, 0 días, 8 días y 2,5 días no se guardan); mensajes del backend en Curl #18–#20 |
+| H2-C1, F-08 | Navegador | ✅ | Recorrido, paso 17 |
+| H2-C3 | Navegador | ✅ | Recorrido, paso 2: sin meta se ve la racha y no hay barras |
+| H3-C2, H3-C5, F-06 | Navegador | ✅ | Recorrido, paso 18 |
+| H3-C3 | Navegador | ✅ | Recorrido, paso 19 (botón habilitado a mano con las herramientas de desarrollo) |
+| H4-C2, F-09 | Navegador | ✅ | Recorrido, paso 22 |
+| H5-C1 | Navegador | ✅ | Recorrido, paso 9: «3,5 de 5 h · 70 %», «2 de 3 días · 67 %», «En curso» |
+| H5-C2, F-05 | Auto + Navegador | ✅ | `formato.test.js` (`anchoBarra` limita a 100); recorrido, paso 11: porcentaje real, barra llena sin salirse y «Meta cumplida» |
+| H5-C3 | Navegador | ✅ | Recorrido, paso 10 |
+| H5-C8, F-11 | Navegador | ✅ | Recorrido, paso 2 (`empty-state` con formulario) y paso 20 (API parada en local → `error-state`) |
+| H6-C1 … H6-C3, H6-C5, F-14 | Auto + Navegador | ✅ | `formato.test.js` (`textoRacha`) y `progreso.test.js` caso 11; recorrido, paso 14: racha y «Mejor racha» con los textos de F-14 |
+| H7-C1 | Navegador | ✅ | Recorrido, paso 5 |
+| H7-C2, H7-C4 | Navegador | ✅ | Recorrido, paso 6: mensajes del backend para ≤ avance y para repetido |
+| H7-C3, F-07 | Navegador | ✅ | Recorrido, paso 7 |
+| H7-C5 | Navegador | ✅ | Recorrido, paso 8 |
+| H7-C6, F-07 | Navegador | ✅ | Recorrido, paso 2: sin meta no hay formulario de hitos |
+| H8-C1, F-10 | Navegador | ✅ | Recorrido, paso 12: «Alcanzado el <hoy>» sin recargar a mano |
+| H9-C1, H9-C5, F-13 | Auto + Navegador | ✅ | `progreso.test.js` («3 de 4 semanas» → `semanasCumplidas = 3`, `semanasConMeta = 4`); recorrido, paso 15: 4 indicadores con rango y estado, sin gráfico. El texto «3 de 4…» no se puede ver en el navegador sin semanas pasadas con meta, así que se cubre con el test. |
+| H9-C2 | Auto + Navegador | ✅ | `progreso.test.js` caso 9; recorrido, paso 15: con la meta creada hoy, 4 «Sin meta» y «Todavía no hay semanas completas con meta». El caso exacto «2 Sin meta, X de 2» necesita una meta de hace 2 semanas, así que se cubre con el test. |
 | F-01 | Revisión | ✅ | `grep -rn "fetch(" frontend/src/pages frontend/src/components` → sin resultados |
 | F-03 | Revisión | ✅ | `MetaSemanal.tsx` no usa `Math.`, `/ 60` ni `* 100`: solo formatea los datos de `/progreso-semanal` |
-| F-04, F-12 | Revisión | ✅ (código) · ⏳ visual | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales |
+| F-04, F-12 | Revisión + Navegador | ✅ | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales; recorrido, pasos 2 y 21: la sección está entre «Resumen de actividad» e «Información» y usa los mismos estilos que el resto de la app |
 | Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08; repetido el 2026-11-09 tras `67c3fea`) |
 | F-16 | Revisión | ✅ | `grep -rn "metaApi" frontend/src` (sin contar `metasApi`) → sin resultados (2026-11-09) |
-| F-17 | Manual (navegador) | ⏳ pendiente | Checklist E2-T20, paso 13 |
-| F-18 | Revisión + Manual | ✅ (código) · ⏳ navegador | `App.tsx:21` tiene la ruta `/partidas/:id/editar` con `FormularioPartida`; falta el recorrido (checklist, paso 13) |
-| F-19 | Manual (navegador) | ⏳ pendiente | Checklist E2-T20, paso 13 |
+| F-17 | Navegador | ✅ | Recorrido, pasos 9 y 12: al registrar una partida desde el detalle se vuelve al detalle con el progreso actualizado |
+| F-18 | Revisión + Navegador | ✅ | `App.tsx:21` (ruta `/partidas/:id/editar`); recorrido, paso 13: formulario precargado, «Editar partida» y «Guardar cambios» |
+| F-19 | Navegador | ✅ | Recorrido, paso 13: al eliminar, el resumen y la barra de horas se actualizan sin recargar la página |
 | F-20 | Revisión | ✅ | `grep -rn "\[#" frontend/src` → sin resultados (2026-11-09) |
-| F-21 | Revisión + Build + Manual | ✅ (revisión y build) · ⏳ visual | [revision-diseno.md](revision-diseno.md): 20 reglas, 4 desviaciones corregidas en `67c3fea`, ninguna abierta; build sin errores; falta el recorrido visual (checklist, paso 21) |
+| F-21 | Revisión + Build + Navegador | ✅ | [revision-diseno.md](revision-diseno.md): 20 reglas, 4 desviaciones corregidas en `67c3fea`, ninguna abierta; build sin errores; recorrido, paso 21. Las correcciones de `67c3fea` llegan a Render con el PR del cierre; conviene repetir la revisión visual en producción después. |
+
+**Recorrido en el navegador (E2-T20).** Lo hizo el usuario el 2026-11-09 siguiendo los 23 pasos del checklist: los 23 en ✅. El checklist relleno está en [`evidencia/checklist-navegador-E2-T20.md`](evidencia/checklist-navegador-E2-T20.md). Con esto ya no queda ninguna fila en ⏳ en las tablas §0.1 y §0.2.
 
 ### 0.3 Cómo cerrar los pendientes
 
@@ -131,7 +133,7 @@ curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                 
 
 **Backend:** cerrado el 2026-11-09 con la segunda ronda de curl (§4.1, casos #35 a #81, E2-T20).
 
-**Frontend.** Recorrer en `http://localhost:5173` o en Render las filas ⏳ de §0.2, siguiendo el checklist de E2-T20, y anotar en la columna de evidencia la fecha y lo observado (o una captura).
+**Frontend:** cerrado el 2026-11-09 con el recorrido en el navegador del checklist de E2-T20 ([evidencia](evidencia/checklist-navegador-E2-T20.md)).
 
 ---
 

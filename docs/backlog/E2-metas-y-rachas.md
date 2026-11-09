@@ -170,9 +170,9 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 | E2-T15 | Funcionalidad | CRUD REST de Meta con 409 por segunda meta activa | H1, H2 | Backend | T06, T08 | ✅ Terminado | `045e599` |
 | E2-T16 | Chore | Limpiar `.gitignore` (diagnóstico #6) | — | — | — | ✅ Terminado | `045e599` |
 | E2-T17 | Documentación | Auditoría por criterio, bitácora del agente y deuda técnica | Todas | Ambas | T15, T16 | ✅ Terminado | `045e599` |
-| E2-T18 | Documentación | Cierre tras el despliegue: README «Cómo trabajamos con el agente», estados de los documentos, AGENTS.md, URLs y trazabilidad commit → ticket | Todas | Ambas | T17 | ⏳ En curso | — |
+| E2-T18 | Documentación | Cierre tras el despliegue: README «Cómo trabajamos con el agente», estados de los documentos, AGENTS.md, URLs y trazabilidad commit → ticket | Todas | Ambas | T17 | ✅ Terminado | `50eee0b`, `9f4b67d` (enlace al video de la demo: pendiente de grabación) |
 | E2-T19 | Calidad | Revisión de diseño de la sección «Meta semanal» contra `DESIGN.md` y corrección de desviaciones | H1–H9 (interfaz) | Frontend | T10–T13 | ✅ Terminado | `af535fe`, `67c3fea` |
-| E2-T20 | Verificación | Cerrar los criterios ⏳ de la auditoría: pruebas con curl en local y recorrido en el navegador | Todas | Ambas | T15, T19 | ⏳ En curso | — |
+| E2-T20 | Verificación | Cerrar los criterios ⏳ de la auditoría: pruebas con curl en local y recorrido en el navegador | Todas | Ambas | T15, T19 | ✅ Terminado | `50eee0b`, `bee3dac` y el commit `docs(E2-T20): cerrar la auditoría del frontend…` |
 
 \* Commit sin el id del ticket en el mensaje. La correspondencia se reconstruyó a partir de los archivos que cambia cada commit; ver [AUDITORIA §9](../AUDITORIA.md#9-limitaciones-conocidas-de-esta-evidencia).
 
