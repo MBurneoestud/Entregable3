@@ -151,27 +151,32 @@ Los criterios están numerados (`H5-C2` = historia H5, criterio 2). Las specs lo
 
 ### Tabla de tickets
 
-| Id | Tipo | Título | Historias | Spec | Depende de |
-|---|---|---|---|---|---|
-| E2-T01 | Habilitador | Módulo de fechas por día calendario y semana en hora de Ecuador | H0 | Backend | — |
-| E2-T02 | Bug | Mostrar las fechas de partidas en el día elegido (diagnóstico #1) | H0 | Frontend | — |
-| E2-T03 | Bug | Desempatar el avance actual por fecha de creación (diagnóstico #4) | H8 | Backend | — |
-| E2-T04 | Funcionalidad | Modelo `Meta` con hitos | H1, H7 | Backend | — |
-| E2-T05 | Funcionalidad | Cálculo puro de progreso, racha, últimas 4 semanas y reglas de hitos | H5, H6, H7, H8, H9 | Backend | T01 |
-| E2-T06 | Funcionalidad | Servicio de metas e hitos | H1, H2, H3, H7, H8 | Backend | T03, T04, T05 |
-| E2-T07 | Funcionalidad | Integrar metas con videojuegos y partidas | H3, H4, H8 | Backend | T06 |
-| E2-T08 | Funcionalidad | Endpoints de meta, hitos y progreso | H1, H2, H5, H6, H7, H9 | Backend | T06 |
-| E2-T09 | Funcionalidad | Tipos y cliente `metasApi` del frontend | H1, H2, H5–H9 | Frontend | T08 |
-| E2-T10 | Funcionalidad | Sección «Meta semanal»: fijar, cambiar y quitar la meta y ver el progreso semanal | H1, H2, H3, H5 | Frontend | T02, T09 |
-| E2-T11 | Funcionalidad | Racha y últimas 4 semanas en la interfaz | H6, H9 | Frontend | T10 |
-| E2-T12 | Funcionalidad | Hitos en la interfaz | H7, H8 | Frontend | T10 |
-| E2-T13 | Funcionalidad | Aviso de borrado de meta e hitos al eliminar un videojuego | H4 | Frontend | T07 |
-| E2-T14 | Documentación | Cierre de E2: README, diagnóstico y verificación manual completa | Todas | Ambas | T01–T13 |
-| E2-T15 | Funcionalidad | CRUD REST de Meta con 409 por segunda meta activa | H1, H2 | Backend | T06, T08 |
-| E2-T16 | Chore | Limpiar `.gitignore` (diagnóstico #6) | — | — | — |
-| E2-T17 | Documentación | Auditoría por criterio, bitácora del agente y deuda técnica | Todas | Ambas | T15, T16 |
+| Id | Tipo | Título | Historias | Spec | Depende de | Estado | Commit(s) |
+|---|---|---|---|---|---|---|---|
+| E2-T01 | Habilitador | Módulo de fechas por día calendario y semana en hora de Ecuador | H0 | Backend | — | ✅ Terminado | `07249f0` |
+| E2-T02 | Bug | Mostrar las fechas de partidas en el día elegido (diagnóstico #1) | H0 | Frontend | — | ✅ Terminado | `9efb900`* |
+| E2-T03 | Bug | Desempatar el avance actual por fecha de creación (diagnóstico #4) | H8 | Backend | — | ✅ Terminado | `b714ee0`, `798de52`*, `1a168f7`* (B-07) |
+| E2-T04 | Funcionalidad | Modelo `Meta` con hitos | H1, H7 | Backend | — | ✅ Terminado | `f9ebb7b`, `b4f3ce5`* |
+| E2-T05 | Funcionalidad | Cálculo puro de progreso, racha, últimas 4 semanas y reglas de hitos | H5, H6, H7, H8, H9 | Backend | T01 | ✅ Terminado | `265813f`, `b4f3ce5`* |
+| E2-T06 | Funcionalidad | Servicio de metas e hitos | H1, H2, H3, H7, H8 | Backend | T03, T04, T05 | ✅ Terminado | `8921dc7`, `b4f3ce5`* |
+| E2-T07 | Funcionalidad | Integrar metas con videojuegos y partidas | H3, H4, H8 | Backend | T06 | ✅ Terminado | `80dd27b`, `b4f3ce5`* |
+| E2-T08 | Funcionalidad | Endpoints de meta, hitos y progreso | H1, H2, H5, H6, H7, H9 | Backend | T06 | ✅ Terminado | `9a40656`, `b4f3ce5`* |
+| E2-T09 | Funcionalidad | Tipos y cliente `metasApi` del frontend | H1, H2, H5–H9 | Frontend | T08 | ✅ Terminado | `9efb900`*, `ae7c06d`* |
+| E2-T10 | Funcionalidad | Sección «Meta semanal»: fijar, cambiar y quitar la meta y ver el progreso semanal | H1, H2, H3, H5 | Frontend | T02, T09 | ✅ Terminado | `9efb900`*, `ae7c06d`* |
+| E2-T11 | Funcionalidad | Racha y últimas 4 semanas en la interfaz | H6, H9 | Frontend | T10 | ✅ Terminado | `9efb900`* |
+| E2-T12 | Funcionalidad | Hitos en la interfaz | H7, H8 | Frontend | T10 | ✅ Terminado | `9efb900`* |
+| E2-T13 | Funcionalidad | Aviso de borrado de meta e hitos al eliminar un videojuego | H4 | Frontend | T07 | ✅ Terminado | `9efb900`* |
+| E2-T14 | Documentación | Cierre de E2: README, diagnóstico y verificación manual completa | Todas | Ambas | T01–T13 | ✅ Terminado | `c611adc` |
+| E2-T15 | Funcionalidad | CRUD REST de Meta con 409 por segunda meta activa | H1, H2 | Backend | T06, T08 | ✅ Terminado | `045e599` |
+| E2-T16 | Chore | Limpiar `.gitignore` (diagnóstico #6) | — | — | — | ✅ Terminado | `045e599` |
+| E2-T17 | Documentación | Auditoría por criterio, bitácora del agente y deuda técnica | Todas | Ambas | T15, T16 | ✅ Terminado | `045e599` |
+| E2-T18 | Documentación | Cierre tras el despliegue: README «Cómo trabajamos con el agente», estados de los documentos, AGENTS.md, URLs y trazabilidad commit → ticket | Todas | Ambas | T17 | ⏳ En curso | — |
+| E2-T19 | Calidad | Revisión de diseño de la sección «Meta semanal» contra `DESIGN.md` y corrección de desviaciones | H1–H9 (interfaz) | Frontend | T10–T13 | ⏳ En curso | — |
+| E2-T20 | Verificación | Cerrar los criterios ⏳ de la auditoría: pruebas con curl en local y recorrido en el navegador | Todas | Ambas | T15, T19 | ⏳ En curso | — |
 
-Orden de trabajo: `T01, T02, T03, T04` (en paralelo) → `T05` → `T06` → `T07, T08` → `T09` → `T10, T13` → `T11, T12` → `T14` → `T15, T16` → `T17`.
+\* Commit sin el id del ticket en el mensaje. La correspondencia se reconstruyó a partir de los archivos que cambia cada commit; ver [AUDITORIA §9](../AUDITORIA.md#9-limitaciones-conocidas-de-esta-evidencia).
+
+Orden de trabajo: `T01, T02, T03, T04` (en paralelo) → `T05` → `T06` → `T07, T08` → `T09` → `T10, T13` → `T11, T12` → `T14` → `T15, T16` → `T17` → `T18, T19` → `T20`.
 
 ### Detalle de los tickets
 
@@ -295,6 +300,30 @@ Además de la Definition of Done común, cada ticket tiene su DoD específica.
   - `docs/AUDITORIA.md` tiene una fila por criterio de cada spec, con cómo se verificó, el resultado y la evidencia.
   - `docs/bitacora-agente.md` recoge de 5 a 8 momentos clave del trabajo con el agente.
   - Este backlog tiene una sección «Deuda técnica» con lo pagado y lo diferido, cada problema con su motivo.
+
+#### E2-T18 · Documentación · Cierre tras el despliegue
+- **Historias:** todas · **Depende de:** T17
+- **DoD:**
+  - El README tiene la sección «Cómo trabajamos con el agente»: harness, flujo seguido, dónde está cada documento y un ejemplo de trazabilidad de punta a punta.
+  - `AGENTS.md` refleja la estructura real (`dominio/`, `components/`, `utils/`, documentos de `docs/`) y sigue teniendo como máximo 60 líneas.
+  - `epicas.md`, el PRD y las dos specs muestran E2 como implementada y en producción.
+  - `docs/AUDITORIA.md` incluye las URLs públicas y las comprobaciones en producción, una §7 actualizada y, en §9, la tabla commit → ticket con la limitación de trazabilidad.
+  - `docs/bitacora-agente.md` incluye el momento en que el agente se desvió y cómo lo detectó el usuario.
+  - Existe un guion de la demo (`docs/guion-demo.md`) con el flujo de la fase 10.
+
+#### E2-T19 · Calidad · Revisión de diseño
+- **Historias:** H1–H9 (interfaz) · **Depende de:** T10–T13
+- **DoD:**
+  - `docs/revision-diseno.md` tiene una fila por regla de `DESIGN.md` aplicable a la sección «Meta semanal» y a la edición de partidas: dónde se revisó, el resultado y la corrección.
+  - Cada desviación se corrige solo con los tokens y clases que ya existen, en un commit que cita E2-T19 (regla F-21 de la spec del frontend).
+  - `cd frontend && npm run build` pasa y `grep -rn "\[#" frontend/src` no devuelve resultados.
+
+#### E2-T20 · Verificación · Cerrar los pendientes de la auditoría
+- **Historias:** todas · **Depende de:** T15, T19
+- **DoD:**
+  - Los criterios manuales del backend en ⏳ se comprueban con curl contra la API en local, con datos `[PRUEBA]` que se borran al terminar. Los casos y el log se añaden a `docs/AUDITORIA.md` (§4.1 y apéndices C y D).
+  - Los criterios del frontend en ⏳, y F-16 a F-21, se recorren en el navegador. Solo se marcan ✅ con lo observado y registrado.
+  - Lo que no se pueda verificar queda en ⏳, con su motivo.
 
 ---
 

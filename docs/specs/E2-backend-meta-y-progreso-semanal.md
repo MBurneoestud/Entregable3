@@ -1,6 +1,6 @@
 # Spec backend — E2: Meta y progreso semanal
 
-Fecha: 2026-11-07 · Estado: implementada (2026-11-08)
+Fecha: 2026-11-07 · Estado: implementada (2026-11-08) y desplegada en Render (2026-11-09)
 Documentos relacionados: [PRD](../prd/PRD-diario-progreso-gamer.md) · [historias y tickets](../backlog/E2-metas-y-rachas.md) · [spec frontend](E2-frontend-meta-semanal.md) · [diagnóstico](../diagnostico.md)
 Tickets: E2-T01, E2-T03, E2-T04, E2-T05, E2-T06, E2-T07, E2-T08, E2-T15 (y la parte backend de E2-T14)
 Ampliación (2026-11-08): CRUD REST del recurso Meta con 409 al crear una segunda meta activa (E2-T15, reglas B-25 a B-29).
@@ -366,6 +366,8 @@ Se escriben con `node:test` en `test/` y se lanzan con `cd backend && npm test`.
 | E2-T08 | N `backend/src/routes/meta.routes.ts` · N `backend/src/controllers/meta.controller.ts` · M `backend/src/app.ts` |
 | E2-T15 | N `backend/src/dominio/metas.ts` · N `test/dominio/metas.test.js` · M `backend/src/services/meta.service.ts` · M `backend/src/controllers/meta.controller.ts` · M `backend/src/routes/meta.routes.ts` · N `backend/src/routes/metaPorId.routes.ts` · M `backend/src/app.ts` · M `README.md` |
 | E2-T14 (backend) | M `README.md` · M `docs/diagnostico.md` |
+| E2-T18 (backend) | M `docs/AUDITORIA.md` (§ Despliegue, §7 y §9) · M esta spec (estado) |
+| E2-T20 (backend) | M `docs/AUDITORIA.md` (§0.1, §4.1 y apéndices C y D). Solo verificación: no cambia código. |
 
 ## 9. Fuera de alcance
 
