@@ -1,6 +1,6 @@
 # Auditoría — evidencia que no se ve en el historial de git
 
-Proyecto: Diario de Progreso Gamer · Rama: `feature/e2-metas-rachas` · Fecha de corte: 2026-11-08
+Proyecto: Diario de Progreso Gamer · Rama: `feature/e2-metas-rachas` · Fecha de corte: 2026-11-09 (primera versión: 2026-11-08)
 
 El historial de git solo muestra **qué** cambió y **cuándo** se hizo el commit. No muestra los planes hechos en plan mode, las ejecuciones de tests, las pruebas manuales contra la API, si los hooks funcionan, las decisiones tomadas en la conversación con el agente ni el trabajo que aún no está en un commit. Este documento reúne esa evidencia. El contenido íntegro de cada archivo de evidencia está en los [apéndices](#apendices).
 
@@ -10,7 +10,7 @@ Una fila por cada fila de la tabla «criterio → verificación» de cada spec: 
 
 **Cómo leer las tablas**
 
-- **Auto:** test de `cd backend && npm test`. En la última ejecución (2026-11-08, tras E2-T15) pasan **203 de 203**, con 0 fallos y 0 omitidos.
+- **Auto:** test de `cd backend && npm test`. En la última ejecución (2026-11-09, tras E2-T19) pasan **203 de 203**, con 0 fallos y 0 omitidos.
 - **Curl #N:** caso N de la [tabla de pruebas manuales §4.1](#41-tabla-de-pruebas), con el log en el [Apéndice C](#apendice-c).
 - **Revisión:** comprobación del código o `grep` hecha el 2026-11-08; el comando está en la columna de evidencia.
 - **Resultado:**
@@ -30,17 +30,17 @@ Ninguna fila se marca ✅ sin evidencia registrada.
 | H0-C4 | Auto | ✅ | `fechas.test.js` (`inicioSemana("2026-01-01") = "2025-12-29"`) |
 | B-06 | Auto | ✅ | `fechas.test.js` (`diaCalendario`, `interpretarFecha`) |
 | H1-C1 | Curl | ✅ | Curl #3: `PUT /meta {5,3}` → 201, meta activa |
-| H1-C2, B-03 | Manual (pendiente): `PUT /meta {8,3}` sobre una meta existente | ⏳ pendiente | Ningún caso de §4.1 cambia las cifras de una meta existente |
-| H1-C3 | Manual (pendiente) | ⏳ pendiente | Ningún caso cambia una meta con hitos |
+| H1-C2, B-03 | Curl | ✅ | Curl #41 (`PUT /meta {8,3}` → 201) y #42 (progreso con `horasSemanales: 8`); #43: la meta anterior queda `activa: false` (2026-11-09) |
+| H1-C3 | Curl | ✅ | Curl #42: tras cambiar la meta, la nueva tiene los hitos 50 % y 80 %, y el de 50 % conserva su `alcanzadoEn` |
 | H1-C4, B-04 | Curl | ✅ | Curl #14: mismos valores → 200, sin meta nueva |
 | H1-C5, B-02 | Auto + Curl | ✅ | `meta.test.js` y `metas.test.js` caso 1; Curl #18, #19 y #20 → 400 con el mensaje exacto |
 | H2-C1 | Curl | ✅ | Curl #27 (`DELETE /meta` → 204) y #28 (`GET /meta` → 404) |
 | H2-C2 | Auto | ✅ | `progreso.test.js` caso 10 |
 | H2-C3 | Curl | ✅ | Curl #2: sin meta → `meta: null`, `hitos: []`, horas y rachas calculadas |
-| H3-C1, B-18 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` caso 15 y `metas.test.js` caso 1; falta el `PUT` de estado a `completado` contra la API |
-| H3-C3 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 1 (juego `abandonado` → 400); falta la comprobación contra la API |
-| H3-C4 | Manual (pendiente) | ⏳ pendiente | — |
-| H3-C6 | Manual (pendiente) | ⏳ pendiente | — |
+| H3-C1, B-18 | Auto + Curl | ✅ | `progreso.test.js` caso 15 y `metas.test.js` caso 1; Curl #55 (estado `completado`) y #56 (`GET /meta` → 404) |
+| H3-C3 | Auto + Curl | ✅ | `metas.test.js` caso 1; Curl #58 (`PUT /meta` en juego abandonado → 400 con el mensaje exacto) y #59 (`POST /metas` → 400) |
+| H3-C4 | Curl | ✅ | Curl #60 (vuelve a `jugando`), #61 (`GET /meta` → 404: no se recupera) y #62 (meta nueva → 201) |
+| H3-C6 | Curl | ✅ | Curl #53 (estado `pausado`) y #54 (`GET /meta` → 200, la meta sigue activa) |
 | H4-C1, B-17 | Curl | ✅ | Curl #33–34: al borrar A y B se borraron sus metas |
 | H5-C1 | Auto | ✅ | `progreso.test.js` (3,5 h, 70 %, 2 días, 67 %) |
 | H5-C2, B-09 | Auto | ✅ | `progreso.test.js` caso 6 (140 %) |
@@ -53,11 +53,11 @@ Ninguna fila se marca ✅ sin evidencia registrada.
 | H6-C6, B-07 | Auto | ✅ | `progreso.test.js` caso 12; `orden-partidas.test.js` (`avanceActualHastaHoy`) |
 | H7-C1 | Curl | ✅ | Curl #15: hito 50 % con avance 35 % → 201 |
 | H7-C2, H7-C3, H7-C4, B-13, B-14 | Auto + Curl | ✅ | `progreso.test.js` caso 14 y `meta.test.js`; Curl #21 (≤ avance → 400), #22 (sin descripción → 400) y #31 (repetido → 409) |
-| H7-C5 | Manual (pendiente): `DELETE /meta/hitos/:hitoId` → 200 | ⏳ pendiente | Curl #23 y #26 solo prueban los errores (400 y 404) |
+| H7-C5 | Curl | ✅ | Curl #50: `DELETE /meta/hitos/:hitoId` → 200 y en la respuesta solo queda el hito de 50 % |
 | H7-C6 | Curl | ✅ | Curl #29: sin meta → 404 |
-| H8-C1, B-15 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` caso 13 |
-| H8-C2, H8-C3 | Auto + Manual | ✅ auto · ⏳ manual | `progreso.test.js` casos 13 y 17 |
-| H8-C4, B-16 | Auto + Manual | ✅ auto · ⏳ manual | `orden-partidas.test.js` |
+| H8-C1, B-15 | Auto + Curl | ✅ | `progreso.test.js` caso 13; Curl #39 (partida al 55 %) y #40 (el hito 50 % recibe `alcanzadoEn`) |
+| H8-C2, H8-C3 | Auto + Curl | ✅ | `progreso.test.js` casos 13 y 17; Curl #45 (avance 45 % → `alcanzado: false`, fecha conservada) y #49 (sin partidas → ningún hito alcanzado, fecha conservada) |
+| H8-C4, B-16 | Auto + Curl | ✅ | `orden-partidas.test.js`; Curl #44–#46: dos partidas el mismo día (55 % y luego 45 %) → `/progreso-semanal` y `/resumen` devuelven 45 % |
 | H9-C1, B-12 | Auto | ✅ | `progreso.test.js` (3 de 4 semanas) |
 | H9-C2 | Auto + Curl | ✅ | `progreso.test.js` caso 9; Curl #2 (4 semanas `sin_meta`) |
 | H9-C3 | Auto | ✅ | `progreso.test.js` caso 8 |
@@ -68,43 +68,51 @@ Ninguna fila se marca ✅ sin evidencia registrada.
 | B-22 | Auto + Curl | ✅ | `progreso.test.js` caso 16; Curl #16 (`mejorRacha: 4`) |
 | B-23 | Auto + Curl | ✅ | `progreso.test.js` caso 17; Curl #2 y #16 (objeto sin envoltorio) y #30 (`/progreso` → 404) |
 | B-24 | Auto + Curl | ✅ | `progreso.test.js` caso 14 y `errorHandler.test.js`; Curl #31 (hito repetido → 409) y #32 (8 `PUT` simultáneos → 201 ×2, 409 ×6) |
-| H1-C6, B-25 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` casos 1 y 2; falta `POST /metas` dos veces → 201 y 409 (comandos en §0.3) |
-| H1-C7, B-26 | Manual (pendiente) | ⏳ pendiente | Comandos en §0.3 |
-| B-27 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 3 |
-| B-28 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` casos 4 y 5 |
-| H2-C4, B-29 | Auto + Manual | ✅ auto · ⏳ manual | `metas.test.js` caso 6 |
+| H1-C6, B-25 | Auto + Curl | ✅ | `metas.test.js` casos 1 y 2; Curl #65 (201), #66 (**409** «El videojuego ya tiene una meta activa; cámbiala o desactívala antes de crear otra») y #67 (`GET /meta` sigue devolviendo {5, 3}) |
+| H1-C7, B-26 | Curl | ✅ | Curl #43 (2 metas, la activa primero) y #64 (juego sin metas → `metas: []`) |
+| B-27 | Auto + Curl | ✅ | `metas.test.js` caso 3; Curl #68 (200), #69 (`abc` → 400), #70 (inexistente → 404) y #74 (meta archivada → 200, `activa: false`) |
+| B-28 | Auto + Curl | ✅ | `metas.test.js` casos 4 y 5; Curl #71 (`{horasSemanales: 8}` → 201 con `diasPorSemana: 3`), #72 (mismo cuerpo → 200) y #73 (meta archivada → 409) |
+| H2-C4, B-29 | Auto + Curl | ✅ | `metas.test.js` caso 6; Curl #75 (200), #76 (segunda vez → 409), #77 (la meta sigue guardada) y #78 (modificarla → 409). Los hitos se conservan porque la meta no se borra (B-29); en este caso la meta no tenía hitos |
 
 ### 0.2 Spec frontend — Sección «Meta semanal»
 
 | Criterio / regla | Cómo se verificó | Resultado | Evidencia |
 |---|---|---|---|
-| H0-C1, F-02 | Auto + Manual | ✅ auto · ⏳ manual | `test/frontend/formato.test.js` (`formatearFecha` → «21 oct 2026») |
-| H1-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C2, F-08 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H1-C5, F-15 | Manual (navegador) | ⏳ pendiente | Los mensajes del backend están verificados en Curl #18–#20 |
-| H2-C1, F-08 | Manual (navegador) | ⏳ pendiente | — |
-| H2-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H3-C2, H3-C5, F-06 | Manual (navegador) | ⏳ pendiente | — |
-| H3-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H4-C2, F-09 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C2, F-05 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`anchoBarra` limita a 100) |
-| H5-C3 | Manual (navegador) | ⏳ pendiente | — |
-| H5-C8, F-11 | Manual (navegador) | ⏳ pendiente | — |
-| H6-C1 … H6-C3, H6-C5, F-14 | Auto + Manual | ✅ auto · ⏳ manual | `formato.test.js` (`textoRacha`) |
-| H7-C1 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C2, H7-C4 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C3, F-07 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C5 | Manual (navegador) | ⏳ pendiente | — |
-| H7-C6, F-07 | Manual (navegador) | ⏳ pendiente | — |
-| H8-C1, F-10 | Manual (navegador) | ⏳ pendiente | — |
-| H9-C1, H9-C5, F-13 | Manual (navegador) | ⏳ pendiente | — |
-| H9-C2 | Manual (navegador) | ⏳ pendiente | — |
+| H0-C1, F-02 | Auto + Navegador | ✅ | `formato.test.js` (`formatearFecha` → «21 oct 2026»); recorrido, paso 1: la partida del 21/10/2026 se ve «21 oct 2026» en la lista y el detalle |
+| H1-C1 | Navegador | ✅ | Recorrido, paso 4 |
+| H1-C2, F-08 | Navegador | ✅ | Recorrido, paso 16: aviso de archivado y la barra pasa a «de 8 h» |
+| H1-C3 | Navegador | ✅ | Recorrido, paso 16: los hitos siguen iguales y el alcanzado conserva su fecha |
+| H1-C5, F-15 | Navegador | ✅ | Recorrido, paso 3 (0 h, 101 h, 0 días, 8 días y 2,5 días no se guardan); mensajes del backend en Curl #18–#20 |
+| H2-C1, F-08 | Navegador | ✅ | Recorrido, paso 17 |
+| H2-C3 | Navegador | ✅ | Recorrido, paso 2: sin meta se ve la racha y no hay barras |
+| H3-C2, H3-C5, F-06 | Navegador | ✅ | Recorrido, paso 18 |
+| H3-C3 | Navegador | ✅ | Recorrido, paso 19 (botón habilitado a mano con las herramientas de desarrollo) |
+| H4-C2, F-09 | Navegador | ✅ | Recorrido, paso 22 |
+| H5-C1 | Navegador | ✅ | Recorrido, paso 9: «3,5 de 5 h · 70 %», «2 de 3 días · 67 %», «En curso» |
+| H5-C2, F-05 | Auto + Navegador | ✅ | `formato.test.js` (`anchoBarra` limita a 100); recorrido, paso 11: porcentaje real, barra llena sin salirse y «Meta cumplida» |
+| H5-C3 | Navegador | ✅ | Recorrido, paso 10 |
+| H5-C8, F-11 | Navegador | ✅ | Recorrido, paso 2 (`empty-state` con formulario) y paso 20 (API parada en local → `error-state`) |
+| H6-C1 … H6-C3, H6-C5, F-14 | Auto + Navegador | ✅ | `formato.test.js` (`textoRacha`) y `progreso.test.js` caso 11; recorrido, paso 14: racha y «Mejor racha» con los textos de F-14 |
+| H7-C1 | Navegador | ✅ | Recorrido, paso 5 |
+| H7-C2, H7-C4 | Navegador | ✅ | Recorrido, paso 6: mensajes del backend para ≤ avance y para repetido |
+| H7-C3, F-07 | Navegador | ✅ | Recorrido, paso 7 |
+| H7-C5 | Navegador | ✅ | Recorrido, paso 8 |
+| H7-C6, F-07 | Navegador | ✅ | Recorrido, paso 2: sin meta no hay formulario de hitos |
+| H8-C1, F-10 | Navegador | ✅ | Recorrido, paso 12: «Alcanzado el <hoy>» sin recargar a mano |
+| H9-C1, H9-C5, F-13 | Auto + Navegador | ✅ | `progreso.test.js` («3 de 4 semanas» → `semanasCumplidas = 3`, `semanasConMeta = 4`); recorrido, paso 15: 4 indicadores con rango y estado, sin gráfico. El texto «3 de 4…» no se puede ver en el navegador sin semanas pasadas con meta, así que se cubre con el test. |
+| H9-C2 | Auto + Navegador | ✅ | `progreso.test.js` caso 9; recorrido, paso 15: con la meta creada hoy, 4 «Sin meta» y «Todavía no hay semanas completas con meta». El caso exacto «2 Sin meta, X de 2» necesita una meta de hace 2 semanas, así que se cubre con el test. |
 | F-01 | Revisión | ✅ | `grep -rn "fetch(" frontend/src/pages frontend/src/components` → sin resultados |
 | F-03 | Revisión | ✅ | `MetaSemanal.tsx` no usa `Math.`, `/ 60` ni `* 100`: solo formatea los datos de `/progreso-semanal` |
-| F-04, F-12 | Revisión | ✅ (código) · ⏳ visual | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales |
-| Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08) |
+| F-04, F-12 | Revisión + Navegador | ✅ | `grep -E "#[0-9a-fA-F]{3,8}"` en `MetaSemanal.tsx` y `DetalleVideojuego.tsx` → sin colores hexadecimales; recorrido, pasos 2 y 21: la sección está entre «Resumen de actividad» e «Información» y usa los mismos estilos que el resto de la app |
+| Tipos y build | Build | ✅ | `cd frontend && npm run build` → «built» sin errores; `cd backend && npm run build` sin errores (2026-11-08; repetido el 2026-11-09 tras `67c3fea`) |
+| F-16 | Revisión | ✅ | `grep -rn "metaApi" frontend/src` (sin contar `metasApi`) → sin resultados (2026-11-09) |
+| F-17 | Navegador | ✅ | Recorrido, pasos 9 y 12: al registrar una partida desde el detalle se vuelve al detalle con el progreso actualizado |
+| F-18 | Revisión + Navegador | ✅ | `App.tsx:21` (ruta `/partidas/:id/editar`); recorrido, paso 13: formulario precargado, «Editar partida» y «Guardar cambios» |
+| F-19 | Navegador | ✅ | Recorrido, paso 13: al eliminar, el resumen y la barra de horas se actualizan sin recargar la página |
+| F-20 | Revisión | ✅ | `grep -rn "\[#" frontend/src` → sin resultados (2026-11-09) |
+| F-21 | Revisión + Build + Navegador | ✅ | [revision-diseno.md](revision-diseno.md): 20 reglas, 4 desviaciones corregidas en `67c3fea`, ninguna abierta; build sin errores; recorrido, paso 21. Las correcciones de `67c3fea` llegan a Render con el PR del cierre; conviene repetir la revisión visual en producción después. |
+
+**Recorrido en el navegador (E2-T20).** Lo hizo el usuario el 2026-11-09 siguiendo los 23 pasos del checklist: los 23 en ✅. El checklist relleno está en [`evidencia/checklist-navegador-E2-T20.md`](evidencia/checklist-navegador-E2-T20.md). Con esto ya no queda ninguna fila en ⏳ en las tablas §0.1 y §0.2.
 
 ### 0.3 Cómo cerrar los pendientes
 
@@ -123,7 +131,9 @@ curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                 
 curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                                                           # 409 (B-29, H2-C4)
 ```
 
-**Frontend.** Recorrer en `http://localhost:5173` las filas ⏳ de §0.2 y anotar en la columna de evidencia la fecha y lo observado (o una captura).
+**Backend:** cerrado el 2026-11-09 con la segunda ronda de curl (§4.1, casos #35 a #81, E2-T20).
+
+**Frontend:** cerrado el 2026-11-09 con el recorrido en el navegador del checklist de E2-T20 ([evidencia](evidencia/checklist-navegador-E2-T20.md)).
 
 ---
 
@@ -139,9 +149,11 @@ curl -s -X PATCH $API/metas/$M_NUEVA/desactivar                                 
 | 4 | Pruebas manuales del endpoint con curl (paso 6) | Son peticiones HTTP contra la API en local, y los datos se borraron después | [Apéndice C](#apendice-c), [Apéndice D](#apendice-d) |
 | 5 | Los hooks de Claude Code funcionan | git versiona el código de los hooks, pero no que se ejecuten | [Apéndice E](#apendice-e), [Evidencia_Hooks.png](../Evidencia_Hooks.png) |
 | 6 | Decisiones del usuario en la conversación | Solo existen en la conversación con el agente | §6 |
-| 7 | Trabajo sin commit a la fecha de corte | No forma parte del historial | §7 |
-| 8 | Contenido del video de demostración | git guarda el binario, no lo que muestra | §8 |
-| 9 | Limitaciones conocidas de esta evidencia | — | §9 |
+| 7 | Despliegue: URLs públicas y comprobación en producción | git no muestra lo que está desplegado | §7 |
+| 8 | Contenido del video de demostración y guion de la demo de E2 | git guarda el binario, no lo que muestra | §8, [guion-demo.md](guion-demo.md) |
+| 9 | Limitaciones conocidas de esta evidencia, incluida la trazabilidad commit → ticket | — | §9 |
+| — | Revisión de diseño contra DESIGN.md (E2-T19) | — | [revision-diseno.md](revision-diseno.md) |
+| — | Bitácora del trabajo con el agente | — | [bitacora-agente.md](bitacora-agente.md) |
 
 ---
 
@@ -226,6 +238,32 @@ La API se levantó en local (`cd backend && npm run dev`, conectada a MongoDB At
 
 **Resultado: 34 de 34 casos con el código esperado.** Después de la tabla se borraron a mano las 7 partidas de B con `DELETE /api/partidas/:id` (7 × 204). La base de datos volvió a su estado anterior: 2 videojuegos y 2 partidas.
 
+#### Segunda ronda (E2-T20, 2026-11-09): criterios que seguían en ⏳
+
+API en local contra Atlas, script `pruebas-curl-E2-T20.sh` ([Apéndice D.2](#apendice-d)), log en el [Apéndice C.2](#apendice-c). «Hoy» es el lunes 9 de noviembre de 2026: la semana actual va del 9 al 15. Los datos de prueba son tres videojuegos: **C** (cambio de meta, hitos y alcance), **D** (estados del juego) y **E** (CRUD REST de Meta). El propio script los borra al final.
+
+| # | Caso | Petición | Esperado | Obtenido | Resultado clave |
+|---|---|---|---|---|---|
+| 35–38 | C: juego, meta {5, 3}, hitos 50 % y 80 % | `POST /videojuegos`, `PUT /meta`, `POST /meta/hitos` ×2 | 201 | 201 ✅ ×4 | — |
+| 39–40 | **C: alcanzar un hito** (H8-C1) | `POST /partidas` (hoy, 55 %), `GET /meta` | 201 / 200 | ✅ | el hito 50 % recibe `alcanzadoEn` |
+| 41–42 | **C: cambiar la meta** (H1-C2, H1-C3) | `PUT /meta {8,3}`, `GET /progreso-semanal` | 201 / 200 | ✅ | `meta.horasSemanales: 8`; los hitos pasan a la meta nueva y el 50 % conserva su fecha |
+| 43 | C: historial (H1-C7) | `GET /metas` | 200 | 200 ✅ | 2 metas: {8} activa primero y {5} con `activa: false` |
+| 44–46 | **C: dos partidas el mismo día** (H8-C2, H8-C4) | `POST /partidas` (hoy, 45 %), `GET /progreso-semanal`, `GET /resumen` | 201 / 200 / 200 | ✅ | avance actual 45 % en los dos endpoints; hito 50 % `alcanzado: false` con `alcanzadoEn` conservado |
+| 47–49 | C: borrar las partidas (H8-C3) | `DELETE /partidas/:id` ×2, `GET /progreso-semanal` | 204 / 200 | ✅ | sin partidas: avance `null`, ningún hito alcanzado, fecha conservada |
+| 50 | **C: eliminar un hito** (H7-C5) | `DELETE /meta/hitos/:hitoId` | 200 | 200 ✅ | solo queda el hito de 50 % |
+| 51–54 | **D: pausado** (H3-C6) | `PUT /videojuegos/D {estado:"pausado"}`, `GET /meta` | 200 | ✅ | la meta sigue activa |
+| 55–56 | **D: completado** (H3-C1) | `PUT … {estado:"completado"}`, `GET /meta` | 200 / 404 | ✅ | meta archivada |
+| 57–59 | **D: abandonado** (H3-C3) | `PUT … {estado:"abandonado"}`, `PUT /meta`, `POST /metas` | 200 / 400 / 400 | ✅ | «No se puede fijar una meta en un videojuego completado o abandonado» |
+| 60–62 | **D: vuelve a jugando** (H3-C4) | `PUT … {estado:"jugando"}`, `GET /meta`, `PUT /meta` | 200 / 404 / 201 | ✅ | no recupera la meta anterior; se puede fijar una nueva |
+| 63–64 | E: juego sin metas (B-26) | `POST /videojuegos`, `GET /metas` | 201 / 200 | ✅ | `metas: []` |
+| 65–67 | **E: 409 por meta activa duplicada** (H1-C6, B-25) | `POST /metas` ×2, `GET /meta` | 201 / **409** / 200 | ✅ | «El videojuego ya tiene una meta activa; cámbiala o desactívala antes de crear otra»; la meta {5, 3} no cambia |
+| 68–70 | E: consultar por id (B-27) | `GET /metas/:metaId`, `/metas/abc`, `/metas/<inexistente>` | 200 / 400 / 404 | ✅ | — |
+| 71–74 | E: actualizar (B-28) | `PATCH /metas/:id {horasSemanales:8}` ×2, `PATCH` sobre la archivada, `GET` de la archivada | 201 / 200 / 409 / 200 | ✅ | conserva `diasPorSemana: 3`; «La meta está desactivada y no se puede modificar» |
+| 75–78 | **E: desactivar** (H2-C4, B-29) | `PATCH …/desactivar` ×2, `GET /metas/:id`, `PATCH` | 200 / 409 / 200 / 409 | ✅ | «La meta ya está desactivada»; la meta sigue guardada con `activa: false` |
+| 79–81 | Limpieza | `DELETE /videojuegos/C`, `/D` y `/E` | 204 | 204 ✅ ×3 | metas borradas (B-17) |
+
+**Resultado: 47 de 47 casos con el código esperado.** En una primera ejecución, el caso #50 dio 404 por un error del script: usaba el `_id` del hito de la meta anterior, y al cambiar la meta (B-03) los hitos se copian a la nueva con `_id` nuevos. Se corrigió el script para tomar el id de la meta activa y se repitió todo. Después de la limpieza no queda ningún videojuego `[PRUEBA]` en la base.
+
 ### 4.2 Comprobación del cálculo en el caso 16
 
 - **Semana del 2 al 8 de noviembre:** hay partidas el 6, 7 y 8, es decir, 3 × 60 min = **3 h**. Eso da 3 / 5 = **60 %** en horas y **3 días** de 4 = **75 %** en días. La semana no está cumplida.
@@ -268,20 +306,29 @@ La skill [`/commit`](../.claude/skills/commit/SKILL.md) está versionada. `.clau
 | Plan 5 (2026-11-08) | `alcanzado` se calcula con el avance actual; `alcanzadoEn` guarda la primera vez y no se borra | spec B-15, B-23 |
 | Sesión del paso 6 (2026-11-08) | Implementar el 409 (hito repetido y E11000), primero en la spec, y documentar las pruebas manuales. El usuario aprobó la propuesta («begin») | spec B-24, §2 y §4 de este documento |
 
-## 7. Trabajo sin commit a la fecha de corte
+## 7. Despliegue y estado del trabajo
 
-A 2026-11-08, todo lo siguiente está en el árbol de trabajo pero **no** en ningún commit:
+**Ya no hay trabajo sin commit.** La alineación con el enunciado y la regla B-24, que el 2026-11-08 estaban solo en el árbol de trabajo, entraron en `b4f3ce5`. La rama `feature/e2-metas-rachas` se integró a `main` con el [PR #3](https://github.com/MBurneoestud/Entregable3/pull/3) el 2026-11-09. El cierre (E2-T18 a E2-T20) va en la misma rama, en commits que citan su ticket, y se integra con un segundo PR.
 
-- **Alineación con el enunciado** ([plan 5](#a-5) y cambios de nombres):
-  - campos renombrados `horasPorSemana` → `horasSemanales`, `nombre` → `descripcion` y `objetivo` → `porcentajeObjetivo`;
-  - máximo de 100 h por semana (antes 168);
-  - ruta `/progreso` → `/progreso-semanal`, que devuelve el objeto sin envoltorio;
-  - `horasSemana` con 1 decimal y `alcanzado` calculado;
-  - `eliminarPartida` vuelve a calcular los hitos.
+**URLs públicas (Render; la base de datos sigue en MongoDB Atlas):**
 
-  Archivos: `meta.model.ts`, `meta.controller.ts`, `meta.routes.ts`, `meta.service.ts`, `partida.service.ts`, `dominio/progreso.ts`, `progreso.test.js`, `meta.test.js`, specs, backlog, PRD y README.
-- **B-24 (409):** `dominio/progreso.ts`, `meta.service.ts`, `errorHandler.ts`, `test/middlewares/errorHandler.test.js`, specs y README.
-- **Evidencia:** este documento.
+- Frontend: https://diario-gamer-burneo.onrender.com/
+- API: https://diario-gamer-api-burneo.onrender.com/ (salud: `/api/salud`)
+
+**Comprobación en producción (2026-11-09, solo peticiones de lectura, sin crear datos):**
+
+| Comprobación | Resultado |
+|---|---|
+| `GET /api/salud` | 200 `{"estado":"ok"}` |
+| `GET /api/videojuegos/:id/progreso-semanal` | 200 con el objeto de la spec §5 (`semana`, `meta`, `horasSemana`, `porcentajeHoras`, `diasJugadosSemana`, `rachaActual`, `mejorRacha`, `hitos` con `alcanzado`, `ultimas4`) |
+| `GET /api/videojuegos/:id/metas` | 200 `{ metas: [...] }` (CRUD de E2-T15 desplegado) |
+| `GET /api/videojuegos/abc/progreso-semanal` | 400 «"abc" no es un id válido para el campo "_id"» |
+| `GET /api/videojuegos/507f1f77bcf86cd799439011/progreso-semanal` | 404 «No existe un videojuego con id …» |
+| `GET /api/metas/abc` | 400 «"abc" no es un id válido para el campo "metaId"» |
+| JS del frontend publicado | contiene «Meta semanal», «Mejor racha», «Quitar meta», «Editar partida» y la URL de la API de Render |
+| `GET /videojuegos/:id` (ruta profunda del frontend) | 200 (rewrite SPA activo) |
+
+Las correcciones de diseño de `67c3fea` (E2-T19) llegan a producción cuando se integre el PR del cierre.
 
 ## 8. Contenido del video de demostración
 
@@ -294,12 +341,27 @@ A 2026-11-08, todo lo siguiente está en el árbol de trabajo pero **no** en nin
 
 También deja ver un bug: una partida registrada el 21/10/2026 aparece como «20 oct 2026» (problema #1 del diagnóstico). El video no cubre errores 400 o 404, ni eliminar un juego que tenga partidas. Es anterior a E2, así que no incluye metas ni rachas.
 
+La demo de E2 sigue el guion de [`docs/guion-demo.md`](guion-demo.md) (máximo 6 minutos, flujo de la fase 10). El enlace al video se añade al README cuando esté grabado.
+
 ## 9. Limitaciones conocidas de esta evidencia
 
 - **Orden de los tests en E2-T01…T05.** Solo el plan 4 indica que los tests iban primero; git no lo demuestra (§2). El ciclo rojo → verde quedó registrado únicamente para B-24.
 - **Sin tests automatizados en T06–T08** (servicio, integración y endpoints). Esa parte se cubre con las pruebas manuales de §4, no con `npm test`.
 - **Partidas huérfanas.** Eliminar un videojuego borra sus metas (B-17), pero no sus partidas (problema #2 del diagnóstico, todavía abierto; ver [Deuda técnica](backlog/E2-metas-y-rachas.md#deuda-tecnica)). Por eso la limpieza de §4 tuvo que borrarlas a mano.
 - **Sin evidencia histórica de los hooks.** La prueba de los hooks (§5) es de 2026-11-08; no hay registro de que funcionaran en sesiones anteriores.
+- **Trazabilidad en Git: commits sin ticket y specs junto con su código.** Por decisión del responsable del repositorio, el historial de `main` no se reescribe: forzar un push rompería el PR #3 ya integrado y los hashes que citan estos documentos. Las desviaciones quedan documentadas aquí.
+
+  | Commit | Mensaje | Ticket(s) real(es) | Desviación |
+  |---|---|---|---|
+  | `6cb3b0a` | docs: añadir PRD, backlog y specs de E2 y ajustar harness | (fases 3, 4 y 5) | El PRD, las épicas, el backlog y las dos specs van en un solo commit, así que el historial no separa las fases 3, 4 y 5. Sí van **antes** que todo el código de E2 (`07249f0` en adelante). |
+  | `b4f3ce5` | feat(E2): alinear metas con la spec y endpoint progreso-semanal | T04–T08 (alineación con el enunciado y B-24) | No cita ticket. La ampliación de la spec (B-23, B-24 y los nombres de campos) va en el mismo commit que su código. |
+  | `798de52` | fix(E2): excluir partidas futuras del avance actual (B-07) | T03 / T05 (deuda B-07) | No cita ticket. El código va antes que el test (`1a168f7`). |
+  | `1a168f7` | test(E2): cubrir B-07 en avance y alinear spec y diagnóstico | T03 / T05 (deuda B-07) | No cita ticket. |
+  | `9efb900` | feat(E2): añadir sección Meta semanal al detalle del videojuego | T02, T09, T10, T11, T12, T13 | No cita tickets y junta varios en un solo commit; el arreglo #1 del frontend (T02) va mezclado con funcionalidad. La spec (T02, T09–T13) sí es anterior (`6cb3b0a`). |
+  | `ae7c06d` | feat(E2): editar partidas y refrescar progreso semanal en el detalle | T09, T10, T12 (F-16 a F-20) | No cita tickets. La ampliación §9 de la spec del frontend va en el mismo commit que su código. |
+  | `045e599` | feat(E2-T15..T17): añadir CRUD de Meta, auditoría y bitácora | T15, T16, T17 | Cita tickets, pero las reglas B-25 a B-29 de la spec van en el mismo commit que su código. |
+
+  **Corrección aplicada en el cierre (E2-T18 a T20):** cada spec o ampliación se commitea sola y antes que su código (`50eee0b`, con F-21 y los tickets T18–T20, va antes que la corrección de código `67c3fea`), y todos los mensajes citan su ticket. La columna «Commit(s)» de la [tabla de tickets](backlog/E2-metas-y-rachas.md) reconstruye la relación commit → ticket.
 
 ---
 
@@ -1625,6 +1687,394 @@ curl -X DELETE http://localhost:3000/api/videojuegos/6af0c4ca9962f973626f5b09
 
 </details>
 
+
+#### C.2 · Segunda ronda (E2-T20, 2026-11-09)
+
+Generado por `pruebas-curl-E2-T20.sh` ([Apéndice D.2](#apendice-d)) contra `http://localhost:3000`.
+
+<details>
+<summary>Ver las peticiones #35 a #81 y sus respuestas</summary>
+
+#### 35. Crear videojuego C — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos -H 'Content-Type: application/json' -d '{"nombre":"[PRUEBA] C metas e hitos","plataforma":"PC","genero":"rol","estado":"jugando"}'
+```
+```json
+{"videojuego":{"nombre":"[PRUEBA] C metas e hitos","plataforma":"PC","genero":"rol","estado":"jugando","_id":"6af206745f6938faa6462c65","logros":[],"createdAt":"2026-11-09T17:44:20.133Z","updatedAt":"2026-11-09T17:44:20.133Z","__v":0}}
+```
+
+#### 36. C: fijar meta {5 h, 3 días} — esperado 201, obtenido 201 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta -H 'Content-Type: application/json' -d '{"horasSemanales":5,"diasPorSemana":3}'
+```
+```json
+{"meta":{"videojuego":"6af206745f6938faa6462c65","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:20.701Z","hitos":[],"_id":"6af206745f6938faa6462c69","createdAt":"2026-11-09T17:44:20.702Z","updatedAt":"2026-11-09T17:44:20.702Z","__v":0}}
+```
+
+#### 37. C: hito 50 % sin partidas (H7-C1) — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta/hitos -H 'Content-Type: application/json' -d '{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50}'
+```
+```json
+{"meta":{"_id":"6af206745f6938faa6462c69","videojuego":"6af206745f6938faa6462c65","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:20.701Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"_id":"6af206755f6938faa6462c6e"}],"createdAt":"2026-11-09T17:44:20.702Z","updatedAt":"2026-11-09T17:44:21.306Z","__v":1}}
+```
+
+#### 38. C: hito 80 % para eliminar después — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta/hitos -H 'Content-Type: application/json' -d '{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80}'
+```
+```json
+{"meta":{"_id":"6af206745f6938faa6462c69","videojuego":"6af206745f6938faa6462c65","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:20.701Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"_id":"6af206755f6938faa6462c6e"},{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"6af206755f6938faa6462c74"}],"createdAt":"2026-11-09T17:44:20.702Z","updatedAt":"2026-11-09T17:44:21.930Z","__v":2}}
+```
+
+#### 39. C: partida de hoy con 55 % → alcanza el hito 50 % (H8-C1) — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/partidas -H 'Content-Type: application/json' -d '{"videojuego":"6af206745f6938faa6462c65","fecha":"2026-11-09","duracionMinutos":60,"porcentajeAvance":55}'
+```
+```json
+{"partida":{"videojuego":"6af206745f6938faa6462c65","fecha":"2026-11-09T00:00:00.000Z","duracionMinutos":60,"porcentajeAvance":55,"_id":"6af206765f6938faa6462c77","createdAt":"2026-11-09T17:44:22.351Z","updatedAt":"2026-11-09T17:44:22.351Z","__v":0}}
+```
+
+#### 40. C: GET /meta → el hito 50 % tiene alcanzadoEn (H8-C1) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta
+```
+```json
+{"meta":{"_id":"6af206745f6938faa6462c69","videojuego":"6af206745f6938faa6462c65","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:20.701Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"_id":"6af206755f6938faa6462c6e","alcanzadoEn":"2026-11-09T17:44:22.904Z"},{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"6af206755f6938faa6462c74"}],"createdAt":"2026-11-09T17:44:20.702Z","updatedAt":"2026-11-09T17:44:22.905Z","__v":2}}
+```
+
+#### 41. C: cambiar la meta a {8 h, 3 días} → archiva y crea (H1-C2, B-03) — esperado 201, obtenido 201 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta -H 'Content-Type: application/json' -d '{"horasSemanales":8,"diasPorSemana":3}'
+```
+```json
+{"meta":{"videojuego":"6af206745f6938faa6462c65","horasSemanales":8,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:23.757Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzadoEn":"2026-11-09T17:44:22.904Z","_id":"6af206775f6938faa6462c89"},{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"6af206775f6938faa6462c8a"}],"_id":"6af206775f6938faa6462c88","createdAt":"2026-11-09T17:44:23.899Z","updatedAt":"2026-11-09T17:44:23.899Z","__v":0}}
+```
+
+#### 42. C: progreso con la meta nueva, hitos conservados con su fecha (H1-C2, H1-C3) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/progreso-semanal
+```
+```json
+{"semana":{"inicio":"2026-11-09","fin":"2026-11-15"},"meta":{"horasSemanales":8,"diasPorSemana":3},"horasSemana":1,"porcentajeHoras":13,"diasJugadosSemana":1,"porcentajeDias":33,"cumplida":false,"rachaActual":1,"mejorRacha":1,"porcentajeAvanceActual":55,"hitos":[{"_id":"6af206775f6938faa6462c89","descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzado":true,"alcanzadoEn":"2026-11-09T17:44:22.904Z"},{"_id":"6af206775f6938faa6462c8a","descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"alcanzado":false,"alcanzadoEn":null}],"ultimas4":[{"inicio":"2026-10-12","fin":"2026-10-18","estado":"sin_meta"},{"inicio":"2026-10-19","fin":"2026-10-25","estado":"sin_meta"},{"inicio":"2026-10-26","fin":"2026-11-01","estado":"sin_meta"},{"inicio":"2026-11-02","fin":"2026-11-08","estado":"sin_meta"}],"semanasCumplidas":0,"semanasConMeta":0}
+```
+
+#### 43. C: historial → 2 metas, la activa primero (H1-C7, B-26) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/metas
+```
+```json
+{"metas":[{"_id":"6af206775f6938faa6462c88","videojuego":"6af206745f6938faa6462c65","horasSemanales":8,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:23.757Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzadoEn":"2026-11-09T17:44:22.904Z","_id":"6af206775f6938faa6462c89"},{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"6af206775f6938faa6462c8a"}],"createdAt":"2026-11-09T17:44:23.899Z","updatedAt":"2026-11-09T17:44:23.899Z","__v":0},{"_id":"6af206745f6938faa6462c69","videojuego":"6af206745f6938faa6462c65","horasSemanales":5,"diasPorSemana":3,"activa":false,"vigenteDesde":"2026-11-09T17:44:20.701Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"_id":"6af206755f6938faa6462c6e","alcanzadoEn":"2026-11-09T17:44:22.904Z"},{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"6af206755f6938faa6462c74"}],"createdAt":"2026-11-09T17:44:20.702Z","updatedAt":"2026-11-09T17:44:23.758Z","__v":2,"vigenteHasta":"2026-11-09T17:44:23.757Z"}]}
+```
+
+#### 44. C: partida de hoy con 45 %, registrada después (H8-C2, H8-C4) — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/partidas -H 'Content-Type: application/json' -d '{"videojuego":"6af206745f6938faa6462c65","fecha":"2026-11-09","duracionMinutos":30,"porcentajeAvance":45}'
+```
+```json
+{"partida":{"videojuego":"6af206745f6938faa6462c65","fecha":"2026-11-09T00:00:00.000Z","duracionMinutos":30,"porcentajeAvance":45,"_id":"6af206785f6938faa6462c9a","createdAt":"2026-11-09T17:44:24.892Z","updatedAt":"2026-11-09T17:44:24.892Z","__v":0}}
+```
+
+#### 45. C: progreso → avance 45 %, hito 50 % alcanzado: false y alcanzadoEn conservado (H8-C2, H8-C4) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/progreso-semanal
+```
+```json
+{"semana":{"inicio":"2026-11-09","fin":"2026-11-15"},"meta":{"horasSemanales":8,"diasPorSemana":3},"horasSemana":1.5,"porcentajeHoras":19,"diasJugadosSemana":1,"porcentajeDias":33,"cumplida":false,"rachaActual":1,"mejorRacha":1,"porcentajeAvanceActual":45,"hitos":[{"_id":"6af206775f6938faa6462c89","descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzado":false,"alcanzadoEn":"2026-11-09T17:44:22.904Z"},{"_id":"6af206775f6938faa6462c8a","descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"alcanzado":false,"alcanzadoEn":null}],"ultimas4":[{"inicio":"2026-10-12","fin":"2026-10-18","estado":"sin_meta"},{"inicio":"2026-10-19","fin":"2026-10-25","estado":"sin_meta"},{"inicio":"2026-10-26","fin":"2026-11-01","estado":"sin_meta"},{"inicio":"2026-11-02","fin":"2026-11-08","estado":"sin_meta"}],"semanasCumplidas":0,"semanasConMeta":0}
+```
+
+#### 46. C: resumen → el mismo avance actual, 45 % (H8-C4, B-16) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/resumen
+```
+```json
+{"totalPartidas":2,"horasTotales":1.5,"ultimaPartida":"2026-11-09T00:00:00.000Z","porcentajeAvanceActual":45}
+```
+
+#### 47. C: borrar la partida de 45 % → el avance vuelve a 55 % — esperado 204, obtenido 204 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/partidas/6af206785f6938faa6462c9a
+```
+```json
+(sin cuerpo)
+```
+
+#### 48. C: borrar la partida de 55 % → sin partidas — esperado 204, obtenido 204 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/partidas/6af206765f6938faa6462c77
+```
+```json
+(sin cuerpo)
+```
+
+#### 49. C: progreso sin partidas → ningún hito alcanzado, alcanzadoEn conservado (H8-C3) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/progreso-semanal
+```
+```json
+{"semana":{"inicio":"2026-11-09","fin":"2026-11-15"},"meta":{"horasSemanales":8,"diasPorSemana":3},"horasSemana":0,"porcentajeHoras":0,"diasJugadosSemana":0,"porcentajeDias":0,"cumplida":false,"rachaActual":0,"mejorRacha":0,"porcentajeAvanceActual":null,"hitos":[{"_id":"6af206775f6938faa6462c89","descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzado":false,"alcanzadoEn":"2026-11-09T17:44:22.904Z"},{"_id":"6af206775f6938faa6462c8a","descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"alcanzado":false,"alcanzadoEn":null}],"ultimas4":[{"inicio":"2026-10-12","fin":"2026-10-18","estado":"sin_meta"},{"inicio":"2026-10-19","fin":"2026-10-25","estado":"sin_meta"},{"inicio":"2026-10-26","fin":"2026-11-01","estado":"sin_meta"},{"inicio":"2026-11-02","fin":"2026-11-08","estado":"sin_meta"}],"semanasCumplidas":0,"semanasConMeta":0}
+```
+
+#### 50. C: eliminar el hito 80 % (H7-C5) — esperado 200, obtenido 200 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65/meta/hitos/6af206775f6938faa6462c8a
+```
+```json
+{"meta":{"_id":"6af206775f6938faa6462c88","videojuego":"6af206745f6938faa6462c65","horasSemanales":8,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:23.757Z","hitos":[{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50,"alcanzadoEn":"2026-11-09T17:44:22.904Z","_id":"6af206775f6938faa6462c89"}],"createdAt":"2026-11-09T17:44:23.899Z","updatedAt":"2026-11-09T17:44:28.357Z","__v":1}}
+```
+
+#### 51. Crear videojuego D — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos -H 'Content-Type: application/json' -d '{"nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"jugando"}'
+```
+```json
+{"videojuego":{"nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"jugando","_id":"6af2067c5f6938faa6462cc4","logros":[],"createdAt":"2026-11-09T17:44:28.542Z","updatedAt":"2026-11-09T17:44:28.542Z","__v":0}}
+```
+
+#### 52. D: fijar meta {4 h, 2 días} — esperado 201, obtenido 201 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta -H 'Content-Type: application/json' -d '{"horasSemanales":4,"diasPorSemana":2}'
+```
+```json
+{"meta":{"videojuego":"6af2067c5f6938faa6462cc4","horasSemanales":4,"diasPorSemana":2,"activa":true,"vigenteDesde":"2026-11-09T17:44:29.096Z","hitos":[],"_id":"6af2067d5f6938faa6462cc8","createdAt":"2026-11-09T17:44:29.097Z","updatedAt":"2026-11-09T17:44:29.097Z","__v":0}}
+```
+
+#### 53. D: pasar a pausado — esperado 200, obtenido 200 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4 -H 'Content-Type: application/json' -d '{"estado":"pausado"}'
+```
+```json
+{"videojuego":{"_id":"6af2067c5f6938faa6462cc4","nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"pausado","logros":[],"createdAt":"2026-11-09T17:44:28.542Z","updatedAt":"2026-11-09T17:44:29.302Z","__v":0}}
+```
+
+#### 54. D: GET /meta → la meta sigue activa (H3-C6) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta
+```
+```json
+{"meta":{"_id":"6af2067d5f6938faa6462cc8","videojuego":"6af2067c5f6938faa6462cc4","horasSemanales":4,"diasPorSemana":2,"activa":true,"vigenteDesde":"2026-11-09T17:44:29.096Z","hitos":[],"createdAt":"2026-11-09T17:44:29.097Z","updatedAt":"2026-11-09T17:44:29.097Z","__v":0}}
+```
+
+#### 55. D: pasar a completado — esperado 200, obtenido 200 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4 -H 'Content-Type: application/json' -d '{"estado":"completado"}'
+```
+```json
+{"videojuego":{"_id":"6af2067c5f6938faa6462cc4","nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"completado","logros":[],"createdAt":"2026-11-09T17:44:28.542Z","updatedAt":"2026-11-09T17:44:29.804Z","__v":0}}
+```
+
+#### 56. D: GET /meta → ya no hay meta activa (H3-C1, B-18) — esperado 404, obtenido 404 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta
+```
+```json
+{"error":"El videojuego no tiene una meta activa","requestId":"6de2c241-f3ba-4ef9-a6ef-e68ac0c8c14d"}
+```
+
+#### 57. D: pasar a abandonado — esperado 200, obtenido 200 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4 -H 'Content-Type: application/json' -d '{"estado":"abandonado"}'
+```
+```json
+{"videojuego":{"_id":"6af2067c5f6938faa6462cc4","nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"abandonado","logros":[],"createdAt":"2026-11-09T17:44:28.542Z","updatedAt":"2026-11-09T17:44:30.756Z","__v":0}}
+```
+
+#### 58. D: fijar meta en juego abandonado → 400 (H3-C3) — esperado 400, obtenido 400 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta -H 'Content-Type: application/json' -d '{"horasSemanales":4,"diasPorSemana":2}'
+```
+```json
+{"error":"No se puede fijar una meta en un videojuego completado o abandonado","requestId":"a994a8e3-83a2-497d-a290-69589c9b70d2"}
+```
+
+#### 59. D: POST /metas en juego abandonado → 400 (B-25 con B-18) — esperado 400, obtenido 400 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/metas -H 'Content-Type: application/json' -d '{"horasSemanales":4,"diasPorSemana":2}'
+```
+```json
+{"error":"No se puede fijar una meta en un videojuego completado o abandonado","requestId":"2d507d4a-87bc-44e9-aeb7-d0988b789332"}
+```
+
+#### 60. D: volver a jugando — esperado 200, obtenido 200 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4 -H 'Content-Type: application/json' -d '{"estado":"jugando"}'
+```
+```json
+{"videojuego":{"_id":"6af2067c5f6938faa6462cc4","nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"jugando","logros":[],"createdAt":"2026-11-09T17:44:28.542Z","updatedAt":"2026-11-09T17:44:31.596Z","__v":0}}
+```
+
+#### 61. D: GET /meta → la meta anterior no se recupera (H3-C4) — esperado 404, obtenido 404 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta
+```
+```json
+{"error":"El videojuego no tiene una meta activa","requestId":"2c91db14-05a0-4964-b005-3cefdce65f5f"}
+```
+
+#### 62. D: fijar una meta nueva → 201 (H3-C4) — esperado 201, obtenido 201 ✅
+```bash
+curl -X PUT http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4/meta -H 'Content-Type: application/json' -d '{"horasSemanales":4,"diasPorSemana":2}'
+```
+```json
+{"meta":{"videojuego":"6af2067c5f6938faa6462cc4","horasSemanales":4,"diasPorSemana":2,"activa":true,"vigenteDesde":"2026-11-09T17:44:32.371Z","hitos":[],"_id":"6af206805f6938faa6462cdd","createdAt":"2026-11-09T17:44:32.371Z","updatedAt":"2026-11-09T17:44:32.371Z","__v":0}}
+```
+
+#### 63. Crear videojuego E — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos -H 'Content-Type: application/json' -d '{"nombre":"[PRUEBA] E CRUD metas","plataforma":"PC","genero":"rol","estado":"jugando"}'
+```
+```json
+{"videojuego":{"nombre":"[PRUEBA] E CRUD metas","plataforma":"PC","genero":"rol","estado":"jugando","_id":"6af206805f6938faa6462cdf","logros":[],"createdAt":"2026-11-09T17:44:32.555Z","updatedAt":"2026-11-09T17:44:32.555Z","__v":0}}
+```
+
+#### 64. E: GET /metas sin metas → metas: [] (B-26) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206805f6938faa6462cdf/metas
+```
+```json
+{"metas":[]}
+```
+
+#### 65. E: POST /metas {5 h, 3 días} → 201 (B-25) — esperado 201, obtenido 201 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos/6af206805f6938faa6462cdf/metas -H 'Content-Type: application/json' -d '{"horasSemanales":5,"diasPorSemana":3}'
+```
+```json
+{"meta":{"videojuego":"6af206805f6938faa6462cdf","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:33.404Z","hitos":[],"_id":"6af206815f6938faa6462ce5","createdAt":"2026-11-09T17:44:33.404Z","updatedAt":"2026-11-09T17:44:33.404Z","__v":0}}
+```
+
+#### 66. E: segundo POST /metas → 409 meta activa duplicada (H1-C6, B-25) — esperado 409, obtenido 409 ✅
+```bash
+curl -X POST http://localhost:3000/api/videojuegos/6af206805f6938faa6462cdf/metas -H 'Content-Type: application/json' -d '{"horasSemanales":6,"diasPorSemana":3}'
+```
+```json
+{"error":"El videojuego ya tiene una meta activa; cámbiala o desactívala antes de crear otra","requestId":"b1fff6c2-6b8a-401e-bcd9-a84f342f2e5d"}
+```
+
+#### 67. E: GET /meta → sigue la primera meta {5, 3} (H1-C6) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/videojuegos/6af206805f6938faa6462cdf/meta
+```
+```json
+{"meta":{"_id":"6af206815f6938faa6462ce5","videojuego":"6af206805f6938faa6462cdf","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:33.404Z","hitos":[],"createdAt":"2026-11-09T17:44:33.404Z","updatedAt":"2026-11-09T17:44:33.404Z","__v":0}}
+```
+
+#### 68. E: GET /metas/:metaId → 200 (B-27) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/metas/6af206815f6938faa6462ce5
+```
+```json
+{"meta":{"_id":"6af206815f6938faa6462ce5","videojuego":"6af206805f6938faa6462cdf","horasSemanales":5,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:33.404Z","hitos":[],"createdAt":"2026-11-09T17:44:33.404Z","updatedAt":"2026-11-09T17:44:33.404Z","__v":0}}
+```
+
+#### 69. E: GET /metas/abc → 400 (B-27) — esperado 400, obtenido 400 ✅
+```bash
+curl -X GET http://localhost:3000/api/metas/abc
+```
+```json
+{"error":"\"abc\" no es un id válido para el campo \"metaId\"","requestId":"988c745a-1626-4b36-a04c-173c1eaeb17f"}
+```
+
+#### 70. E: GET /metas/<id inexistente> → 404 (B-27) — esperado 404, obtenido 404 ✅
+```bash
+curl -X GET http://localhost:3000/api/metas/507f1f77bcf86cd799439011
+```
+```json
+{"error":"No existe una meta con id 507f1f77bcf86cd799439011","requestId":"f1f053e5-2130-41db-a0cd-b6d15ac6a40b"}
+```
+
+#### 71. E: PATCH /metas/:metaId {horasSemanales: 8} → 201, conserva diasPorSemana (B-28) — esperado 201, obtenido 201 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206815f6938faa6462ce5 -H 'Content-Type: application/json' -d '{"horasSemanales":8}'
+```
+```json
+{"meta":{"videojuego":"6af206805f6938faa6462cdf","horasSemanales":8,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:34.996Z","hitos":[],"_id":"6af206835f6938faa6462cf0","createdAt":"2026-11-09T17:44:35.136Z","updatedAt":"2026-11-09T17:44:35.136Z","__v":0}}
+```
+
+#### 72. E: mismo PATCH sobre la meta nueva → 200 sin cambios (B-28, B-04) — esperado 200, obtenido 200 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206835f6938faa6462cf0 -H 'Content-Type: application/json' -d '{"horasSemanales":8}'
+```
+```json
+{"meta":{"_id":"6af206835f6938faa6462cf0","videojuego":"6af206805f6938faa6462cdf","horasSemanales":8,"diasPorSemana":3,"activa":true,"vigenteDesde":"2026-11-09T17:44:34.996Z","hitos":[],"createdAt":"2026-11-09T17:44:35.136Z","updatedAt":"2026-11-09T17:44:35.136Z","__v":0}}
+```
+
+#### 73. E: PATCH sobre la meta archivada → 409 (B-28) — esperado 409, obtenido 409 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206815f6938faa6462ce5 -H 'Content-Type: application/json' -d '{"horasSemanales":9}'
+```
+```json
+{"error":"La meta está desactivada y no se puede modificar","requestId":"f9dbc675-485a-4022-907b-5cd9e2630ac0"}
+```
+
+#### 74. E: GET de la meta archivada → 200, activa: false (B-27) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/metas/6af206815f6938faa6462ce5
+```
+```json
+{"meta":{"_id":"6af206815f6938faa6462ce5","videojuego":"6af206805f6938faa6462cdf","horasSemanales":5,"diasPorSemana":3,"activa":false,"vigenteDesde":"2026-11-09T17:44:33.404Z","hitos":[],"createdAt":"2026-11-09T17:44:33.404Z","updatedAt":"2026-11-09T17:44:34.996Z","__v":0,"vigenteHasta":"2026-11-09T17:44:34.996Z"}}
+```
+
+#### 75. E: desactivar la meta activa → 200 (B-29) — esperado 200, obtenido 200 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206835f6938faa6462cf0/desactivar
+```
+```json
+{"meta":{"_id":"6af206835f6938faa6462cf0","videojuego":"6af206805f6938faa6462cdf","horasSemanales":8,"diasPorSemana":3,"activa":false,"vigenteDesde":"2026-11-09T17:44:34.996Z","hitos":[],"createdAt":"2026-11-09T17:44:35.136Z","updatedAt":"2026-11-09T17:44:36.233Z","__v":0,"vigenteHasta":"2026-11-09T17:44:36.232Z"}}
+```
+
+#### 76. E: desactivarla otra vez → 409 (H2-C4, B-29) — esperado 409, obtenido 409 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206835f6938faa6462cf0/desactivar
+```
+```json
+{"error":"La meta ya está desactivada","requestId":"68e2c5e8-e13b-43bd-ad6d-e122a5466212"}
+```
+
+#### 77. E: la meta desactivada sigue guardada (H2-C4) — esperado 200, obtenido 200 ✅
+```bash
+curl -X GET http://localhost:3000/api/metas/6af206835f6938faa6462cf0
+```
+```json
+{"meta":{"_id":"6af206835f6938faa6462cf0","videojuego":"6af206805f6938faa6462cdf","horasSemanales":8,"diasPorSemana":3,"activa":false,"vigenteDesde":"2026-11-09T17:44:34.996Z","hitos":[],"createdAt":"2026-11-09T17:44:35.136Z","updatedAt":"2026-11-09T17:44:36.233Z","__v":0,"vigenteHasta":"2026-11-09T17:44:36.232Z"}}
+```
+
+#### 78. E: modificar la meta desactivada → 409 (H2-C4, B-28) — esperado 409, obtenido 409 ✅
+```bash
+curl -X PATCH http://localhost:3000/api/metas/6af206835f6938faa6462cf0 -H 'Content-Type: application/json' -d '{"diasPorSemana":4}'
+```
+```json
+{"error":"La meta está desactivada y no se puede modificar","requestId":"784fb80a-c469-44be-9151-b10751c81d26"}
+```
+
+#### 79. Limpieza: eliminar videojuego [PRUEBA] (sus metas se borran, B-17) — esperado 204, obtenido 204 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/videojuegos/6af206745f6938faa6462c65
+```
+```json
+(sin cuerpo)
+```
+
+#### 80. Limpieza: eliminar videojuego [PRUEBA] (sus metas se borran, B-17) — esperado 204, obtenido 204 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/videojuegos/6af2067c5f6938faa6462cc4
+```
+```json
+(sin cuerpo)
+```
+
+#### 81. Limpieza: eliminar videojuego [PRUEBA] (sus metas se borran, B-17) — esperado 204, obtenido 204 ✅
+```bash
+curl -X DELETE http://localhost:3000/api/videojuegos/6af206805f6938faa6462cdf
+```
+```json
+(sin cuerpo)
+```
+
+**Resultado: 47 de 47 casos con el código esperado.**
+
+</details>
+
 <a id="apendice-d"></a>
 
 ### Apéndice D — Script de las pruebas (`pruebas-curl-E2.sh`)
@@ -1744,6 +2194,122 @@ for p in $PARTIDAS; do req "Limpieza: eliminar partida $p" 204 DELETE "/partidas
 req "Limpieza: eliminar A" 204 DELETE "/videojuegos/$A"
 req "Limpieza: eliminar B (borra sus metas)" 204 DELETE "/videojuegos/$B"
 echo "A=$A B=$B"
+````
+
+</details>
+
+
+#### D.2 · `pruebas-curl-E2-T20.sh` (E2-T20)
+
+<details>
+<summary>Ver el script</summary>
+
+````bash
+#!/usr/bin/env bash
+# Pruebas manuales de E2-T20: cierra los criterios ⏳ del backend en docs/AUDITORIA.md §0.1.
+# Uso: bash pruebas-curl-E2-T20.sh salida.md   (con la API en http://localhost:3000)
+# Crea datos [PRUEBA] y los borra al final (partidas primero; las metas caen con el videojuego, B-17).
+set -u
+API=${API:-http://localhost:3000/api}
+OUT=${1:-pruebas-T20.md}
+N=34
+: > "$OUT"
+OK=0; TOTAL=0
+PARTIDAS=()
+
+# req <título> <esperado> <método> <ruta> [cuerpo]  → deja el cuerpo en $BODY y el código en $CODE
+req() {
+  local titulo=$1 esperado=$2 metodo=$3 ruta=$4 cuerpo=${5:-}
+  N=$((N + 1)); TOTAL=$((TOTAL + 1))
+  local cmd resp
+  if [ -n "$cuerpo" ]; then
+    resp=$(curl -s -w $'\n%{http_code}' -X "$metodo" "$API$ruta" -H 'Content-Type: application/json' -d "$cuerpo")
+    cmd="curl -X $metodo $API$ruta -H 'Content-Type: application/json' -d '$cuerpo'"
+  else
+    resp=$(curl -s -w $'\n%{http_code}' -X "$metodo" "$API$ruta")
+    cmd="curl -X $metodo $API$ruta"
+  fi
+  CODE=${resp##*$'\n'}; BODY=${resp%$'\n'*}
+  local marca="❌"; if [ "$CODE" = "$esperado" ]; then marca="✅"; OK=$((OK + 1)); fi
+  {
+    echo "#### $N. $titulo — esperado $esperado, obtenido $CODE $marca"
+    echo '```bash'; echo "$cmd"; echo '```'
+    echo '```json'; echo "${BODY:-(sin cuerpo)}"; echo '```'; echo
+  } >> "$OUT"
+  echo "#$N $CODE (esperado $esperado) $marca  $titulo"
+}
+campo() { echo "$BODY" | grep -o "\"$1\":\"[a-f0-9]\{24\}\"" | head -1 | cut -d'"' -f4; }
+
+HOY=$(date -u -d '-5 hours' +%F)   # hoy en Ecuador (UTC-5 fijo, B-05)
+
+# --- Videojuego C: cambio de meta, hitos y alcance (H1-C2, H1-C3, H7-C5, H8-*) ---
+req "Crear videojuego C" 201 POST /videojuegos '{"nombre":"[PRUEBA] C metas e hitos","plataforma":"PC","genero":"rol","estado":"jugando"}'
+C=$(campo _id)
+req "C: fijar meta {5 h, 3 días}" 201 PUT /videojuegos/$C/meta '{"horasSemanales":5,"diasPorSemana":3}'
+req "C: hito 50 % sin partidas (H7-C1)" 201 POST /videojuegos/$C/meta/hitos '{"descripcion":"Llegar al 50 %","porcentajeObjetivo":50}'
+req "C: hito 80 % para eliminar después" 201 POST /videojuegos/$C/meta/hitos '{"descripcion":"Llegar al 80 %","porcentajeObjetivo":80}'
+H80=$(echo "$BODY" | grep -o '"descripcion":"Llegar al 80 %","porcentajeObjetivo":80,"_id":"[a-f0-9]\{24\}"' | grep -o '[a-f0-9]\{24\}')
+req "C: partida de hoy con 55 % → alcanza el hito 50 % (H8-C1)" 201 POST /partidas "{\"videojuego\":\"$C\",\"fecha\":\"$HOY\",\"duracionMinutos\":60,\"porcentajeAvance\":55}"
+P55=$(campo _id); PARTIDAS+=("$P55")
+req "C: GET /meta → el hito 50 % tiene alcanzadoEn (H8-C1)" 200 GET /videojuegos/$C/meta
+req "C: cambiar la meta a {8 h, 3 días} → archiva y crea (H1-C2, B-03)" 201 PUT /videojuegos/$C/meta '{"horasSemanales":8,"diasPorSemana":3}'
+req "C: progreso con la meta nueva, hitos conservados con su fecha (H1-C2, H1-C3)" 200 GET /videojuegos/$C/progreso-semanal
+req "C: historial → 2 metas, la activa primero (H1-C7, B-26)" 200 GET /videojuegos/$C/metas
+req "C: partida de hoy con 45 %, registrada después (H8-C2, H8-C4)" 201 POST /partidas "{\"videojuego\":\"$C\",\"fecha\":\"$HOY\",\"duracionMinutos\":30,\"porcentajeAvance\":45}"
+P45=$(campo _id); PARTIDAS+=("$P45")
+req "C: progreso → avance 45 %, hito 50 % alcanzado: false y alcanzadoEn conservado (H8-C2, H8-C4)" 200 GET /videojuegos/$C/progreso-semanal
+req "C: resumen → el mismo avance actual, 45 % (H8-C4, B-16)" 200 GET /videojuegos/$C/resumen
+req "C: borrar la partida de 45 % → el avance vuelve a 55 %" 204 DELETE /partidas/$P45
+req "C: borrar la partida de 55 % → sin partidas" 204 DELETE /partidas/$P55
+req "C: progreso sin partidas → ningún hito alcanzado, alcanzadoEn conservado (H8-C3)" 200 GET /videojuegos/$C/progreso-semanal
+# Al cambiar la meta (B-03) los hitos se copian a la meta nueva con _id nuevos: se toma el de la meta activa.
+H80=$(echo "$BODY" | grep -o '"_id":"[a-f0-9]\{24\}","descripcion":"Llegar al 80 %"' | grep -o '[a-f0-9]\{24\}')
+req "C: eliminar el hito 80 % (H7-C5)" 200 DELETE /videojuegos/$C/meta/hitos/$H80
+
+# --- Videojuego D: meta según el estado del juego (H3-*) ---
+req "Crear videojuego D" 201 POST /videojuegos '{"nombre":"[PRUEBA] D estados","plataforma":"PC","genero":"rol","estado":"jugando"}'
+D=$(campo _id)
+req "D: fijar meta {4 h, 2 días}" 201 PUT /videojuegos/$D/meta '{"horasSemanales":4,"diasPorSemana":2}'
+req "D: pasar a pausado" 200 PUT /videojuegos/$D '{"estado":"pausado"}'
+req "D: GET /meta → la meta sigue activa (H3-C6)" 200 GET /videojuegos/$D/meta
+req "D: pasar a completado" 200 PUT /videojuegos/$D '{"estado":"completado"}'
+req "D: GET /meta → ya no hay meta activa (H3-C1, B-18)" 404 GET /videojuegos/$D/meta
+req "D: pasar a abandonado" 200 PUT /videojuegos/$D '{"estado":"abandonado"}'
+req "D: fijar meta en juego abandonado → 400 (H3-C3)" 400 PUT /videojuegos/$D/meta '{"horasSemanales":4,"diasPorSemana":2}'
+req "D: POST /metas en juego abandonado → 400 (B-25 con B-18)" 400 POST /videojuegos/$D/metas '{"horasSemanales":4,"diasPorSemana":2}'
+req "D: volver a jugando" 200 PUT /videojuegos/$D '{"estado":"jugando"}'
+req "D: GET /meta → la meta anterior no se recupera (H3-C4)" 404 GET /videojuegos/$D/meta
+req "D: fijar una meta nueva → 201 (H3-C4)" 201 PUT /videojuegos/$D/meta '{"horasSemanales":4,"diasPorSemana":2}'
+
+# --- Videojuego E: CRUD REST de Meta (B-25 a B-29) ---
+req "Crear videojuego E" 201 POST /videojuegos '{"nombre":"[PRUEBA] E CRUD metas","plataforma":"PC","genero":"rol","estado":"jugando"}'
+E=$(campo _id)
+req "E: GET /metas sin metas → metas: [] (B-26)" 200 GET /videojuegos/$E/metas
+req "E: POST /metas {5 h, 3 días} → 201 (B-25)" 201 POST /videojuegos/$E/metas '{"horasSemanales":5,"diasPorSemana":3}'
+M1=$(campo _id)
+req "E: segundo POST /metas → 409 meta activa duplicada (H1-C6, B-25)" 409 POST /videojuegos/$E/metas '{"horasSemanales":6,"diasPorSemana":3}'
+req "E: GET /meta → sigue la primera meta {5, 3} (H1-C6)" 200 GET /videojuegos/$E/meta
+req "E: GET /metas/:metaId → 200 (B-27)" 200 GET /metas/$M1
+req "E: GET /metas/abc → 400 (B-27)" 400 GET /metas/abc
+req "E: GET /metas/<id inexistente> → 404 (B-27)" 404 GET /metas/507f1f77bcf86cd799439011
+req "E: PATCH /metas/:metaId {horasSemanales: 8} → 201, conserva diasPorSemana (B-28)" 201 PATCH /metas/$M1 '{"horasSemanales":8}'
+M2=$(campo _id)
+req "E: mismo PATCH sobre la meta nueva → 200 sin cambios (B-28, B-04)" 200 PATCH /metas/$M2 '{"horasSemanales":8}'
+req "E: PATCH sobre la meta archivada → 409 (B-28)" 409 PATCH /metas/$M1 '{"horasSemanales":9}'
+req "E: GET de la meta archivada → 200, activa: false (B-27)" 200 GET /metas/$M1
+req "E: desactivar la meta activa → 200 (B-29)" 200 PATCH /metas/$M2/desactivar
+req "E: desactivarla otra vez → 409 (H2-C4, B-29)" 409 PATCH /metas/$M2/desactivar
+req "E: la meta desactivada sigue guardada (H2-C4)" 200 GET /metas/$M2
+req "E: modificar la meta desactivada → 409 (H2-C4, B-28)" 409 PATCH /metas/$M2 '{"diasPorSemana":4}'
+
+# --- Limpieza ---
+for V in "$C" "$D" "$E"; do
+  req "Limpieza: eliminar videojuego [PRUEBA] (sus metas se borran, B-17)" 204 DELETE /videojuegos/$V
+done
+
+echo
+echo "Resultado: $OK de $TOTAL casos con el código esperado."
+echo "**Resultado: $OK de $TOTAL casos con el código esperado.**" >> "$OUT"
 ````
 
 </details>

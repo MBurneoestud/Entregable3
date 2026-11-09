@@ -242,7 +242,7 @@ export function MetaSemanal({ videojuegoId, estado, recarga = 0 }: Props) {
 
       {cargando ? (
         <div role="status" className="loading-state mt-6">
-          <span className="loading-dot" />
+          <span aria-hidden="true" className="loading-dot" />
           Cargando meta semanal...
         </div>
       ) : error || !progreso ? (

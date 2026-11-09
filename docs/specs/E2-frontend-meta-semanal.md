@@ -1,8 +1,9 @@
 # Spec frontend — E2: Sección «Meta semanal»
 
-Fecha: 2026-11-07 · Estado: lista para implementar
+Fecha: 2026-11-07 · Estado: implementada (2026-11-08) y desplegada en Render (2026-11-09)
 Documentos relacionados: [PRD](../prd/PRD-diario-progreso-gamer.md) · [historias y tickets](../backlog/E2-metas-y-rachas.md) · [spec backend](E2-backend-meta-y-progreso-semanal.md) · [DESIGN.md](../../DESIGN.md)
-Tickets: E2-T02, E2-T09, E2-T10, E2-T11, E2-T12, E2-T13 (y la parte frontend de E2-T14)
+Tickets: E2-T02, E2-T09, E2-T10, E2-T11, E2-T12, E2-T13, E2-T19 (y la parte frontend de E2-T14, E2-T18 y E2-T20)
+Ampliaciones: §9 (2026-11-08, refresco del progreso, edición de partidas y tokens de color) y §10 (2026-11-09, revisión de diseño, E2-T19).
 
 ## 0. Resumen
 
@@ -161,6 +162,8 @@ Si `DetalleVideojuego.tsx` crece demasiado, la sección puede extraerse a `front
 
 Añadida tras verificar el frontend contra el enunciado de E2 («el progreso se vuelve a consultar al registrar, editar o eliminar una partida», «un servicio `metasApi.ts`», «estilos solo desde las variables definidas a partir de DESIGN.md»).
 
+Tickets: F-16 → E2-T09; F-17, F-18 y F-19 → E2-T10 (refresco del progreso y edición de partidas); F-20 → E2-T10 y E2-T12 (tokens de la sección). Esta ampliación se commiteó junto con su código en `ae7c06d` ([AUDITORIA §9](../AUDITORIA.md#9-limitaciones-conocidas-de-esta-evidencia)).
+
 | ID | Regla |
 |---|---|
 | F-16 | El cliente de metas **DEBE** llamarse `frontend/src/api/metasApi.ts`. |
@@ -180,3 +183,21 @@ Añadida tras verificar el frontend contra el enunciado de E2 («el progreso se 
 | Archivos (N = nuevo, M = modificado) |
 |---|
 | M `frontend/src/api/metaApi.ts` → `metasApi.ts` · M `frontend/src/App.tsx` · M `frontend/src/pages/FormularioPartida.tsx` · M `frontend/src/pages/ListaPartidas.tsx` · M `frontend/src/pages/DetalleVideojuego.tsx` · M `frontend/src/components/MetaSemanal.tsx` · M `frontend/tailwind.config.js` · M `frontend/src/styles.css` · M `DESIGN.md` · M `README.md` |
+
+## 10. Ampliación (2026-11-09): revisión de diseño (E2-T19)
+
+Se escribe y se commitea antes de cualquier corrección de código, para cumplir el paso 7 del enunciado («revisión de diseño con el agente contra DESIGN.md y corrección de las desviaciones»).
+
+| ID | Regla |
+|---|---|
+| F-21 | La sección «Meta semanal» (`MetaSemanal.tsx`), su integración en `DetalleVideojuego.tsx` y la edición de partidas (`FormularioPartida.tsx`) **DEBEN** cumplir el checklist §9 y la sección «No hacemos» §10 de `DESIGN.md`. La revisión **DEBE** quedar en `docs/revision-diseno.md`, con una fila por regla: dónde se revisó, el resultado y la corrección. Cada desviación **DEBE** corregirse solo con los tokens y clases que ya existen y en un commit que cite E2-T19. **NO DEBEN** añadirse colores, fuentes ni librerías nuevas. |
+
+| Criterio | Verificación | Tipo |
+|---|---|---|
+| F-21 | `docs/revision-diseno.md` sin desviaciones abiertas; `cd frontend && npm run build` pasa; `grep -rn "\[#" frontend/src` sin resultados; recorrido visual de la sección | Revisión + Build + Manual |
+
+| Ticket | Archivos (N = nuevo, M = modificado) |
+|---|---|
+| E2-T19 | N `docs/revision-diseno.md` · M `frontend/src/components/MetaSemanal.tsx`, `frontend/src/pages/DetalleVideojuego.tsx` y `frontend/src/pages/FormularioPartida.tsx`, solo si la revisión encuentra desviaciones |
+| E2-T18 (frontend) | M `README.md` · M `AGENTS.md` · M esta spec (estado) |
+| E2-T20 (frontend) | M `docs/AUDITORIA.md` (§0.2) |

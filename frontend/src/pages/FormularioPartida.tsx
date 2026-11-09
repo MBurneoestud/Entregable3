@@ -163,7 +163,7 @@ export function FormularioPartida() {
     return (
       <MarcoPagina>
         <div role="status" className="loading-state">
-          <span className="loading-dot" />
+          <span aria-hidden="true" className="loading-dot" />
           Cargando formulario...
         </div>
       </MarcoPagina>
