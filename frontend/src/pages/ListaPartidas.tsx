@@ -2,14 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { eliminarPartida, obtenerPartidas } from "../api/partidaApi";
 import type { Partida } from "../types";
+import { formatearFecha } from "../utils/formato";
 import { MarcoPagina } from "./MarcoPagina";
-
-function formatearFecha(fecha: string): string {
-  const fechaValida = new Date(fecha);
-  if (Number.isNaN(fechaValida.getTime())) return "Fecha no disponible";
-
-  return new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(fechaValida);
-}
 
 function formatearDuracion(minutos: number): string {
   const horas = Math.floor(minutos / 60);
@@ -22,7 +16,9 @@ function formatearDuracion(minutos: number): string {
 
 function nombreVideojuego(partida: Partida): string {
   if (partida.videojuego === null) return "Videojuego eliminado";
-  return typeof partida.videojuego === "string" ? "Videojuego" : partida.videojuego.nombre;
+  return typeof partida.videojuego === "string"
+    ? "Videojuego"
+    : partida.videojuego.nombre;
 }
 
 export function ListaPartidas() {
@@ -45,7 +41,11 @@ export function ListaPartidas() {
       })
       .catch((err: unknown) => {
         if (activa) {
-          setError(err instanceof Error ? err.message : "Error al cargar las partidas.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Error al cargar las partidas.",
+          );
         }
       })
       .finally(() => {
@@ -58,7 +58,11 @@ export function ListaPartidas() {
   }, [videojuegoId, recarga]);
 
   async function manejarEliminar(partida: Partida) {
-    if (eliminandoId || !window.confirm("¿Seguro que quieres eliminar esta partida?")) return;
+    if (
+      eliminandoId ||
+      !window.confirm("¿Seguro que quieres eliminar esta partida?")
+    )
+      return;
 
     setError(null);
     setEliminandoId(partida._id);
@@ -66,13 +70,18 @@ export function ListaPartidas() {
       await eliminarPartida(partida._id);
       setRecarga((actual) => actual + 1);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "No se pudo eliminar la partida.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo eliminar la partida.",
+      );
     } finally {
       setEliminandoId(null);
     }
   }
 
-  const totalMinutos = partidas.reduce((total, partida) => total + partida.duracionMinutos, 0);
+  const totalMinutos = partidas.reduce(
+    (total, partida) => total + partida.duracionMinutos,
+    0,
+  );
 
   return (
     <MarcoPagina>
@@ -86,14 +95,11 @@ export function ListaPartidas() {
             <span className="icon-tile-session">
               <span aria-hidden="true">◷</span>
             </span>
-            <p className="eyebrow">
-              Diario de juego
-            </p>
-            <h1 className="page-title">
-              Historial de partidas
-            </h1>
+            <p className="eyebrow">Diario de juego</p>
+            <h1 className="page-title">Historial de partidas</h1>
             <p className="page-description">
-              Consulta las sesiones registradas y el tiempo que has dedicado a cada juego.
+              Consulta las sesiones registradas y el tiempo que has dedicado a
+              cada juego.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -126,22 +132,17 @@ export function ListaPartidas() {
         )}
 
         {!cargando && !error && partidas.length > 0 && (
-          <section aria-label="Resumen de partidas" className="grid gap-4 sm:grid-cols-2">
+          <section
+            aria-label="Resumen de partidas"
+            className="grid gap-4 sm:grid-cols-2"
+          >
             <div className="panel p-5">
-              <p className="stat-label">
-                Partidas registradas
-              </p>
-              <p className="stat-value">
-                {partidas.length}
-              </p>
+              <p className="stat-label">Partidas registradas</p>
+              <p className="stat-value">{partidas.length}</p>
             </div>
             <div className="panel p-5">
-              <p className="stat-label">
-                Tiempo de juego
-              </p>
-              <p className="stat-value">
-                {formatearDuracion(totalMinutos)}
-              </p>
+              <p className="stat-label">Tiempo de juego</p>
+              <p className="stat-value">{formatearDuracion(totalMinutos)}</p>
             </div>
           </section>
         )}
@@ -172,22 +173,38 @@ export function ListaPartidas() {
               <table className="w-full min-w-[760px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-line bg-white/[0.018]">
-                    <th scope="col" className="table-heading">Fecha</th>
-                    <th scope="col" className="table-heading">Videojuego</th>
-                    <th scope="col" className="table-heading">Duración</th>
-                    <th scope="col" className="table-heading">Avance</th>
-                    <th scope="col" className="table-heading">Notas</th>
-                    <th scope="col" className="table-heading">Acciones</th>
+                    <th scope="col" className="table-heading">
+                      Fecha
+                    </th>
+                    <th scope="col" className="table-heading">
+                      Videojuego
+                    </th>
+                    <th scope="col" className="table-heading">
+                      Duración
+                    </th>
+                    <th scope="col" className="table-heading">
+                      Avance
+                    </th>
+                    <th scope="col" className="table-heading">
+                      Notas
+                    </th>
+                    <th scope="col" className="table-heading">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line/70">
                   {partidas.map((partida) => (
-                    <tr key={partida._id} className="transition hover:bg-white/[0.025]">
+                    <tr
+                      key={partida._id}
+                      className="transition hover:bg-white/[0.025]"
+                    >
                       <td className="whitespace-nowrap px-5 py-4 font-mono text-xs text-mist">
                         {formatearFecha(partida.fecha)}
                       </td>
                       <td className="px-5 py-4">
-                        {partida.videojuego && typeof partida.videojuego !== "string" ? (
+                        {partida.videojuego &&
+                        typeof partida.videojuego !== "string" ? (
                           <Link
                             to={`/videojuegos/${partida.videojuego._id}`}
                             className="font-bold text-white transition hover:text-signal"
@@ -195,14 +212,18 @@ export function ListaPartidas() {
                             {nombreVideojuego(partida)}
                           </Link>
                         ) : (
-                          <span className="font-semibold text-white">{nombreVideojuego(partida)}</span>
+                          <span className="font-semibold text-white">
+                            {nombreVideojuego(partida)}
+                          </span>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-5 py-4 text-stone-300">
                         {formatearDuracion(partida.duracionMinutos)}
                       </td>
                       <td className="px-5 py-4 text-stone-300">
-                        {partida.porcentajeAvance == null ? "—" : `${partida.porcentajeAvance}%`}
+                        {partida.porcentajeAvance == null
+                          ? "—"
+                          : `${partida.porcentajeAvance}%`}
                       </td>
                       <td className="max-w-xs px-5 py-4 text-stone-300">
                         <span className="block truncate" title={partida.notas}>
@@ -210,14 +231,24 @@ export function ListaPartidas() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <button
-                          type="button"
-                          onClick={() => manejarEliminar(partida)}
-                          disabled={eliminandoId !== null}
-                          className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
-                        >
-                          {eliminandoId === partida._id ? "Eliminando..." : "Eliminar"}
-                        </button>
+                        <div className="flex gap-2">
+                          <Link
+                            to={`/partidas/${encodeURIComponent(partida._id)}/editar`}
+                            className="secondary-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                          >
+                            Editar
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => manejarEliminar(partida)}
+                            disabled={eliminandoId !== null}
+                            className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                          >
+                            {eliminandoId === partida._id
+                              ? "Eliminando..."
+                              : "Eliminar"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

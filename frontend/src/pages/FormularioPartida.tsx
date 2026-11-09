@@ -1,8 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { crearPartida } from "../api/partidaApi";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import {
+  actualizarPartida,
+  crearPartida,
+  obtenerPartidaPorId,
+} from "../api/partidaApi";
 import { obtenerVideojuegos } from "../api/videojuegoApi";
-import type { PartidaFormulario, Videojuego } from "../types";
+import type { Partida, PartidaFormulario, Videojuego } from "../types";
 import { MarcoPagina } from "./MarcoPagina";
 
 const FORMULARIO_VACIO: PartidaFormulario = {
@@ -11,10 +20,34 @@ const FORMULARIO_VACIO: PartidaFormulario = {
   duracionMinutos: 0,
 };
 
+// Spec: docs/specs/E2-frontend-meta-semanal.md §9 (F-17, F-18).
+function idVideojuego(partida: Partida): string {
+  if (partida.videojuego === null) return "";
+  return typeof partida.videojuego === "string"
+    ? partida.videojuego
+    : partida.videojuego._id;
+}
+
+function aFormulario(partida: Partida): PartidaFormulario {
+  return {
+    videojuego: idVideojuego(partida),
+    fecha: partida.fecha.slice(0, 10),
+    duracionMinutos: partida.duracionMinutos,
+    porcentajeAvance: partida.porcentajeAvance ?? undefined,
+    notas: partida.notas ?? "",
+  };
+}
+
 export function FormularioPartida() {
+  const { id: partidaId } = useParams<{ id: string }>();
+  const esEdicion = Boolean(partidaId);
   const [parametros] = useSearchParams();
   const navigate = useNavigate();
   const videojuegoIdInicial = parametros.get("videojuegoId") ?? "";
+  // F-17: si se llegó desde el detalle de un videojuego, se vuelve a él.
+  const rutaVuelta = videojuegoIdInicial
+    ? `/videojuegos/${encodeURIComponent(videojuegoIdInicial)}`
+    : "/partidas";
 
   const [videojuegos, setVideojuegos] = useState<Videojuego[]>([]);
   const [formulario, setFormulario] = useState<PartidaFormulario>({
@@ -28,21 +61,35 @@ export function FormularioPartida() {
   useEffect(() => {
     let activa = true;
 
-    obtenerVideojuegos()
-      .then(({ videojuegos: lista }) => {
+    Promise.all([
+      obtenerVideojuegos(),
+      partidaId ? obtenerPartidaPorId(partidaId) : Promise.resolve(null),
+    ])
+      .then(([{ videojuegos: lista }, respuestaPartida]) => {
         if (!activa) return;
 
         setVideojuegos(lista);
+        if (respuestaPartida) {
+          // F-18: en edición se precargan los datos de la partida.
+          setFormulario(aFormulario(respuestaPartida.partida));
+          return;
+        }
         setFormulario((actual) => ({
           ...actual,
-          videojuego: lista.some((videojuego) => videojuego._id === videojuegoIdInicial)
+          videojuego: lista.some(
+            (videojuego) => videojuego._id === videojuegoIdInicial,
+          )
             ? videojuegoIdInicial
-            : lista[0]?._id ?? "",
+            : (lista[0]?._id ?? ""),
         }));
       })
       .catch((err: unknown) => {
         if (activa) {
-          setError(err instanceof Error ? err.message : "No se pudieron cargar los videojuegos.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo cargar el formulario de la partida.",
+          );
         }
       })
       .finally(() => {
@@ -52,7 +99,7 @@ export function FormularioPartida() {
     return () => {
       activa = false;
     };
-  }, [videojuegoIdInicial]);
+  }, [videojuegoIdInicial, partidaId]);
 
   async function manejarEnvio(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -70,7 +117,9 @@ export function FormularioPartida() {
       !Number.isInteger(formulario.duracionMinutos) ||
       formulario.duracionMinutos < 0
     ) {
-      setError("La duración debe ser un número entero de minutos igual o mayor que 0.");
+      setError(
+        "La duración debe ser un número entero de minutos igual o mayor que 0.",
+      );
       return;
     }
     if (
@@ -81,21 +130,30 @@ export function FormularioPartida() {
       return;
     }
 
+    const notas = formulario.notas?.trim() ?? "";
     const datosAEnviar: PartidaFormulario = {
       ...formulario,
-      notas: formulario.notas?.trim() || undefined,
+      // F-18: en edición, las notas vacías se envían como "" para borrarlas.
+      notas: esEdicion ? notas : notas || undefined,
     };
 
     try {
       setGuardando(true);
-      await crearPartida(datosAEnviar);
-      navigate(
-        videojuegoIdInicial
-          ? `/partidas?videojuegoId=${encodeURIComponent(datosAEnviar.videojuego)}`
-          : "/partidas"
-      );
+      if (partidaId) {
+        await actualizarPartida(partidaId, datosAEnviar);
+      } else {
+        await crearPartida(datosAEnviar);
+      }
+      // F-17: el detalle vuelve a cargar partidas, resumen y progreso al montarse.
+      navigate(rutaVuelta);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "No se pudo registrar la partida.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : esEdicion
+            ? "No se pudo guardar la partida."
+            : "No se pudo registrar la partida.",
+      );
     } finally {
       setGuardando(false);
     }
@@ -115,12 +173,9 @@ export function FormularioPartida() {
   return (
     <MarcoPagina>
       <div className="mx-auto max-w-3xl">
-        <Link
-          to="/partidas"
-          className="back-link mb-6"
-        >
+        <Link to={rutaVuelta} className="back-link mb-6">
           <span aria-hidden="true">←</span>
-          Volver a partidas
+          {videojuegoIdInicial ? "Volver al videojuego" : "Volver a partidas"}
         </Link>
 
         <section className="panel overflow-hidden">
@@ -129,18 +184,17 @@ export function FormularioPartida() {
               <span aria-hidden="true">◷</span>
             </span>
             <h1 className="form-title">
-              Registrar partida
+              {esEdicion ? "Editar partida" : "Registrar partida"}
             </h1>
             <p className="form-description">
-              Añade una sesión a tu historial y actualiza tu progreso en el juego.
+              {esEdicion
+                ? "Corrige los datos de esta sesión; tu progreso se recalcula al guardar."
+                : "Añade una sesión a tu historial y actualiza tu progreso en el juego."}
             </p>
           </div>
 
           {error && (
-            <p
-              role="alert"
-              className="form-error mx-6 mt-6 sm:mx-9"
-            >
+            <p role="alert" className="form-error mx-6 mt-6 sm:mx-9">
               {error}
             </p>
           )}
@@ -148,7 +202,8 @@ export function FormularioPartida() {
           {videojuegos.length === 0 && !error ? (
             <div className="space-y-4 p-6 sm:p-9">
               <p className="text-sm leading-6 text-mist">
-                Necesitas añadir un videojuego antes de poder registrar una partida.
+                Necesitas añadir un videojuego antes de poder registrar una
+                partida.
               </p>
               <Link to="/videojuegos/nuevo" className="primary-button">
                 Añadir videojuego
@@ -157,11 +212,11 @@ export function FormularioPartida() {
           ) : videojuegos.length > 0 ? (
             <form onSubmit={manejarEnvio} className="space-y-6 p-6 sm:p-9">
               <div>
-                <label
-                  htmlFor="videojuego"
-                  className="field-label"
-                >
-                  Videojuego <span className="text-signal" aria-hidden="true">*</span>
+                <label htmlFor="videojuego" className="field-label">
+                  Videojuego{" "}
+                  <span className="text-signal" aria-hidden="true">
+                    *
+                  </span>
                 </label>
                 <select
                   id="videojuego"
@@ -170,7 +225,10 @@ export function FormularioPartida() {
                   required
                   value={formulario.videojuego}
                   onChange={(evento) =>
-                    setFormulario((actual) => ({ ...actual, videojuego: evento.target.value }))
+                    setFormulario((actual) => ({
+                      ...actual,
+                      videojuego: evento.target.value,
+                    }))
                   }
                 >
                   {videojuegos.map((videojuego) => (
@@ -184,7 +242,10 @@ export function FormularioPartida() {
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
                   <label htmlFor="fecha" className="field-label">
-                    Fecha <span className="text-signal" aria-hidden="true">*</span>
+                    Fecha{" "}
+                    <span className="text-signal" aria-hidden="true">
+                      *
+                    </span>
                   </label>
                   <input
                     id="fecha"
@@ -194,17 +255,20 @@ export function FormularioPartida() {
                     required
                     value={formulario.fecha}
                     onChange={(evento) =>
-                      setFormulario((actual) => ({ ...actual, fecha: evento.target.value }))
+                      setFormulario((actual) => ({
+                        ...actual,
+                        fecha: evento.target.value,
+                      }))
                     }
                   />
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="duracionMinutos"
-                    className="field-label"
-                  >
-                    Duración (minutos) <span className="text-signal" aria-hidden="true">*</span>
+                  <label htmlFor="duracionMinutos" className="field-label">
+                    Duración (minutos){" "}
+                    <span className="text-signal" aria-hidden="true">
+                      *
+                    </span>
                   </label>
                   <input
                     id="duracionMinutos"
@@ -226,10 +290,7 @@ export function FormularioPartida() {
               </div>
 
               <div>
-                <label
-                  htmlFor="porcentajeAvance"
-                  className="field-label"
-                >
+                <label htmlFor="porcentajeAvance" className="field-label">
                   Avance actual (%)
                 </label>
                 <input
@@ -245,7 +306,9 @@ export function FormularioPartida() {
                     setFormulario((actual) => ({
                       ...actual,
                       porcentajeAvance:
-                        evento.target.value === "" ? undefined : Number(evento.target.value),
+                        evento.target.value === ""
+                          ? undefined
+                          : Number(evento.target.value),
                     }))
                   }
                 />
@@ -262,7 +325,10 @@ export function FormularioPartida() {
                   rows={4}
                   value={formulario.notas ?? ""}
                   onChange={(evento) =>
-                    setFormulario((actual) => ({ ...actual, notas: evento.target.value }))
+                    setFormulario((actual) => ({
+                      ...actual,
+                      notas: evento.target.value,
+                    }))
                   }
                 />
               </div>
@@ -273,7 +339,11 @@ export function FormularioPartida() {
                   disabled={guardando}
                   className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
-                  {guardando ? "Guardando..." : "Registrar partida"}
+                  {guardando
+                    ? "Guardando..."
+                    : esEdicion
+                      ? "Guardar cambios"
+                      : "Registrar partida"}
                 </button>
               </div>
             </form>

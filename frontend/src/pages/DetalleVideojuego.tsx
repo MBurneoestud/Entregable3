@@ -7,6 +7,7 @@ import {
   obtenerResumenVideojuego,
   obtenerVideojuegoPorId,
 } from "../api/videojuegoApi";
+import { eliminarPartida } from "../api/partidaApi";
 import type {
   EstadoVideojuego,
   Genero,
@@ -14,6 +15,8 @@ import type {
   ResumenVideojuego,
   Videojuego,
 } from "../types";
+import { MetaSemanal } from "../components/MetaSemanal";
+import { formatearFecha, formatearHoras } from "../utils/formato";
 import { MarcoPagina } from "./MarcoPagina";
 
 const etiquetasEstado: Record<EstadoVideojuego, string> = {
@@ -32,13 +35,6 @@ const etiquetasGenero: Record<Genero, string> = {
   otro: "Otro",
 };
 
-function formatearFecha(fecha: string): string {
-  const fechaValida = new Date(fecha);
-  if (Number.isNaN(fechaValida.getTime())) return "Fecha no disponible";
-
-  return new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(fechaValida);
-}
-
 export function DetalleVideojuego() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -48,8 +44,15 @@ export function DetalleVideojuego() {
   const [resumen, setResumen] = useState<ResumenVideojuego | null>(null);
   const [cargando, setCargando] = useState(true);
   const [eliminando, setEliminando] = useState(false);
-  const [actualizandoLogro, setActualizandoLogro] = useState<number | null>(null);
+  const [actualizandoLogro, setActualizandoLogro] = useState<number | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [eliminandoPartidaId, setEliminandoPartidaId] = useState<string | null>(
+    null,
+  );
+  // F-19: se incrementa para que «Meta semanal» vuelva a pedir el progreso.
+  const [recargaProgreso, setRecargaProgreso] = useState(0);
 
   useEffect(() => {
     if (!id) {
@@ -75,7 +78,11 @@ export function DetalleVideojuego() {
       })
       .catch((err: unknown) => {
         if (activa) {
-          setError(err instanceof Error ? err.message : "No se pudo cargar el videojuego.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo cargar el videojuego.",
+          );
         }
       })
       .finally(() => {
@@ -89,7 +96,12 @@ export function DetalleVideojuego() {
 
   async function manejarEliminar() {
     if (!id || !videojuego || eliminando) return;
-    if (!window.confirm(`¿Seguro que quieres eliminar "${videojuego.nombre}"?`)) return;
+    if (
+      !window.confirm(
+        `¿Seguro que quieres eliminar "${videojuego.nombre}"? También se borrarán su meta semanal y sus hitos.`,
+      )
+    )
+      return;
 
     setError(null);
     setEliminando(true);
@@ -97,8 +109,37 @@ export function DetalleVideojuego() {
       await eliminarVideojuego(id);
       navigate("/");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "No se pudo eliminar el videojuego.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo eliminar el videojuego.",
+      );
       setEliminando(false);
+    }
+  }
+
+  async function manejarEliminarPartida(partida: Partida) {
+    if (!id || eliminandoPartidaId) return;
+    if (!window.confirm("¿Seguro que quieres eliminar esta partida?")) return;
+
+    setError(null);
+    setEliminandoPartidaId(partida._id);
+    try {
+      await eliminarPartida(partida._id);
+      // F-19: tras eliminar se vuelven a pedir partidas, resumen y progreso.
+      const [respuestaPartidas, respuestaResumen] = await Promise.all([
+        obtenerPartidasDeVideojuego(id),
+        obtenerResumenVideojuego(id),
+      ]);
+      setPartidas(respuestaPartidas.partidas);
+      setResumen(respuestaResumen);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo eliminar la partida.",
+      );
+    } finally {
+      setRecargaProgreso((actual) => actual + 1);
+      setEliminandoPartidaId(null);
     }
   }
 
@@ -111,7 +152,9 @@ export function DetalleVideojuego() {
       const respuesta = await actualizarEstadoLogro(id, indice, obtenido);
       setVideojuego(respuesta.videojuego);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el logro.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo actualizar el logro.",
+      );
     } finally {
       setActualizandoLogro(null);
     }
@@ -132,10 +175,7 @@ export function DetalleVideojuego() {
     return (
       <MarcoPagina>
         <div className="space-y-5">
-          <Link
-            to="/"
-            className="back-link"
-          >
+          <Link to="/" className="back-link">
             <span aria-hidden="true">←</span>
             Volver a videojuegos
           </Link>
@@ -150,20 +190,21 @@ export function DetalleVideojuego() {
   if (!videojuego) {
     return (
       <MarcoPagina>
-        <div className="panel p-8 text-sm text-mist">No se encontró el videojuego.</div>
+        <div className="panel p-8 text-sm text-mist">
+          No se encontró el videojuego.
+        </div>
       </MarcoPagina>
     );
   }
 
-  const logrosObtenidos = videojuego.logros.filter((logro) => logro.obtenido).length;
+  const logrosObtenidos = videojuego.logros.filter(
+    (logro) => logro.obtenido,
+  ).length;
 
   return (
     <MarcoPagina>
       <div className="space-y-8">
-        <Link
-          to="/"
-          className="back-link"
-        >
+        <Link to="/" className="back-link">
           <span aria-hidden="true">←</span>
           Volver a videojuegos
         </Link>
@@ -184,12 +225,8 @@ export function DetalleVideojuego() {
               <span className="icon-tile">
                 <span aria-hidden="true">🎮</span>
               </span>
-              <p className="eyebrow">
-                Detalle del videojuego
-              </p>
-              <h1 className="page-title">
-                {videojuego.nombre}
-              </h1>
+              <p className="eyebrow">Detalle del videojuego</p>
+              <h1 className="page-title">{videojuego.nombre}</h1>
               <div className="mt-5 flex flex-wrap gap-2">
                 {videojuego.genero && (
                   <span className="status-badge status-badge-session">
@@ -203,13 +240,18 @@ export function DetalleVideojuego() {
                 )}
                 {videojuego.plataforma && (
                   <span className="status-badge status-badge-neutral">
-                    {videojuego.plataforma === "Movil" ? "Móvil" : videojuego.plataforma}
+                    {videojuego.plataforma === "Movil"
+                      ? "Móvil"
+                      : videojuego.plataforma}
                   </span>
                 )}
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to={`/videojuegos/${videojuego._id}/editar`} className="secondary-button">
+              <Link
+                to={`/videojuegos/${videojuego._id}/editar`}
+                className="secondary-button"
+              >
                 Editar
               </Link>
               <button
@@ -224,7 +266,10 @@ export function DetalleVideojuego() {
           </div>
         </section>
 
-        <section aria-label="Resumen de actividad" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section
+          aria-label="Resumen de actividad"
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
           <div className="panel p-5">
             <p className="stat-label">Partidas</p>
             <p className="stat-value">
@@ -234,23 +279,33 @@ export function DetalleVideojuego() {
           <div className="panel p-5">
             <p className="stat-label">Horas jugadas</p>
             <p className="stat-value">
-              {(resumen?.horasTotales ?? 0).toLocaleString("es", { maximumFractionDigits: 1 })}
+              {formatearHoras(resumen?.horasTotales ?? 0)}
               <span className="ml-2 text-sm font-medium text-mist">h</span>
             </p>
           </div>
           <div className="panel p-5">
             <p className="stat-label">Avance actual</p>
             <p className="stat-value">
-              {resumen?.porcentajeAvanceActual == null ? "—" : `${resumen.porcentajeAvanceActual}%`}
+              {resumen?.porcentajeAvanceActual == null
+                ? "—"
+                : `${resumen.porcentajeAvanceActual}%`}
             </p>
           </div>
           <div className="panel p-5">
             <p className="stat-label">Última partida</p>
             <p className="mt-3 text-lg font-bold text-white">
-              {resumen?.ultimaPartida ? formatearFecha(resumen.ultimaPartida) : "Sin partidas"}
+              {resumen?.ultimaPartida
+                ? formatearFecha(resumen.ultimaPartida)
+                : "Sin partidas"}
             </p>
           </div>
         </section>
+
+        <MetaSemanal
+          videojuegoId={videojuego._id}
+          estado={videojuego.estado}
+          recarga={recargaProgreso}
+        />
 
         <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="panel p-6 sm:p-8">
@@ -261,19 +316,23 @@ export function DetalleVideojuego() {
                 <dd className="text-right text-sm font-semibold text-white">
                   {videojuego.plataforma === "Movil"
                     ? "Móvil"
-                    : videojuego.plataforma ?? "Sin especificar"}
+                    : (videojuego.plataforma ?? "Sin especificar")}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Género</dt>
                 <dd className="text-right text-sm font-semibold text-white">
-                  {videojuego.genero ? etiquetasGenero[videojuego.genero] : "Sin especificar"}
+                  {videojuego.genero
+                    ? etiquetasGenero[videojuego.genero]
+                    : "Sin especificar"}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
                 <dt className="text-sm text-mist">Estado</dt>
                 <dd className="text-right text-sm font-semibold text-white">
-                  {videojuego.estado ? etiquetasEstado[videojuego.estado] : "Sin especificar"}
+                  {videojuego.estado
+                    ? etiquetasEstado[videojuego.estado]
+                    : "Sin especificar"}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-4">
@@ -307,13 +366,18 @@ export function DetalleVideojuego() {
             ) : (
               <ul className="mt-5 divide-y divide-line">
                 {videojuego.logros.map((logro, indice) => (
-                  <li key={`${logro.nombre}-${indice}`} className="flex items-center gap-3 py-3">
+                  <li
+                    key={`${logro.nombre}-${indice}`}
+                    className="flex items-center gap-3 py-3"
+                  >
                     <input
                       id={`logro-${indice}`}
                       type="checkbox"
                       checked={logro.obtenido}
                       disabled={actualizandoLogro !== null}
-                      onChange={(evento) => manejarCambioLogro(indice, evento.target.checked)}
+                      onChange={(evento) =>
+                        manejarCambioLogro(indice, evento.target.checked)
+                      }
                       className="checkbox-control shrink-0"
                     />
                     <label
@@ -325,7 +389,9 @@ export function DetalleVideojuego() {
                       {logro.nombre}
                     </label>
                     {logro.obtenido && (
-                      <span className="text-xs font-semibold text-signal">Obtenido</span>
+                      <span className="text-xs font-semibold text-signal">
+                        Obtenido
+                      </span>
                     )}
                   </li>
                 ))}
@@ -338,7 +404,9 @@ export function DetalleVideojuego() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="section-title">Historial de partidas</h2>
-              <p className="mt-1 text-sm text-mist">Sesiones registradas para este videojuego.</p>
+              <p className="mt-1 text-sm text-mist">
+                Sesiones registradas para este videojuego.
+              </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -368,7 +436,9 @@ export function DetalleVideojuego() {
                   <span className="activity-marker" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-white">{formatearFecha(partida.fecha)}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {formatearFecha(partida.fecha)}
+                      </p>
                       <span className="text-xs font-semibold text-signal">
                         {partida.duracionMinutos} min
                       </span>
@@ -383,6 +453,24 @@ export function DetalleVideojuego() {
                         {partida.notas}
                       </p>
                     )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        to={`/partidas/${encodeURIComponent(partida._id)}/editar?videojuegoId=${encodeURIComponent(videojuego._id)}`}
+                        className="secondary-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                      >
+                        Editar
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => manejarEliminarPartida(partida)}
+                        disabled={eliminandoPartidaId !== null}
+                        className="danger-button !min-h-8 !px-3 !py-1.5 !text-xs"
+                      >
+                        {eliminandoPartidaId === partida._id
+                          ? "Eliminando..."
+                          : "Eliminar"}
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}

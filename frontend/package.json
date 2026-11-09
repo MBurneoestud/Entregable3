@@ -4,6 +4,7 @@
   "description": "Frontend en React + TypeScript para el Diario Gamer",
   "type": "module",
   "scripts": {
+    "test": "node --test",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"

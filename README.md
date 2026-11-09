@@ -42,6 +42,23 @@ Partida
 
 `Partida` se referencia en vez de embeberse porque las sesiones pueden crecer indefinidamente y también se consultan por separado, por ejemplo, para listar el historial completo. El listado de partidas usa `populate("videojuego")` para incluir la ficha del juego relacionado.
 
+### Meta
+
+Cada meta semanal referencia a su videojuego y embebe sus hitos de avance:
+
+```text
+Meta
+├── videojuego: ObjectId (ref: "Videojuego", obligatorio)
+├── horasSemanales: number (obligatorio, > 0 y <= 100)
+├── diasPorSemana: number (obligatorio, entero de 1 a 7)
+├── activa: boolean (por defecto true; como máximo una activa por videojuego)
+├── vigenteDesde: Date (obligatoria) · vigenteHasta: Date (solo en metas archivadas)
+├── hitos: [{ descripcion: string, porcentajeObjetivo: number (entero 1–100), alcanzadoEn?: Date }] (máx. 5)
+└── createdAt, updatedAt
+```
+
+`Meta` se referencia porque tiene su propio ciclo de vida: se crea, se reemplaza y se desactiva sin tocar la ficha del juego, y las metas anteriores se conservan como historial. Los hitos se embeben porque son una lista corta y acotada que solo tiene sentido dentro de su meta. El estado «alcanzado» no se guarda: se calcula con el avance actual del juego (decisión H-6 del PRD), para no duplicar un dato que ya está en las partidas. Lo único que se guarda es `alcanzadoEn`, la fecha de la primera vez que se alcanzó, como historial (ver [spec §3.1](docs/specs/E2-backend-meta-y-progreso-semanal.md)).
+
 ### Resumen de progreso
 
 `GET /api/videojuegos/:id/resumen` calcula el resumen en la capa de servicio, usando las partidas de ese videojuego:
@@ -70,7 +87,7 @@ La respuesta tiene esta forma:
 - **Frontend:** React, TypeScript, Vite y React Router.
 - **Configuración backend:** `backend/src/config/env.ts` lee y valida las variables de entorno; `backend/src/DBconnection.ts` se ocupa de conectar con MongoDB.
 - **Backend organizado en:** `models`, `routes`, `controllers`, `services` y `middlewares`.
-- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts` y `frontend/src/api/partidaApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
+- **Servicios frontend:** `frontend/src/api/videojuegoApi.ts`, `frontend/src/api/partidaApi.ts` y `frontend/src/api/metasApi.ts`; las páginas consumen estos módulos en lugar de llamar a `fetch` directamente.
 
 ## Funcionalidades
 
@@ -78,10 +95,26 @@ La respuesta tiene esta forma:
 - Consultar el detalle de un videojuego, sus logros, partidas y resumen calculado.
 - Crear, editar y eliminar videojuegos.
 - Marcar logros como obtenidos o pendientes.
-- Listar y filtrar partidas, ver su videojuego relacionado y eliminar sesiones.
+- Listar y filtrar partidas, ver su videojuego relacionado, editarlas y eliminarlas (también desde el historial del detalle).
 - Registrar una partida con fecha, duración, avance y notas.
+- Fijar, cambiar y quitar una meta semanal por videojuego, con progreso de la semana, racha, hitos y últimas 4 semanas (ver [Meta semanal](#meta-semanal)).
 - Mostrar estados de carga, error y contenido vacío en las vistas que dependen de la API.
 - Incluir un identificador de petición, registrar solicitudes y centralizar el manejo de errores HTTP.
+
+### Meta semanal
+
+El detalle de cada videojuego incluye la sección «Meta semanal», entre «Resumen de actividad» e «Información» (componente `frontend/src/components/MetaSemanal.tsx`). Todos sus datos salen de `GET /api/videojuegos/:id/progreso-semanal`; la interfaz no recalcula nada.
+
+- **Sin meta:** se muestra el formulario de horas (más de 0 y hasta 100) y días por semana (1–7) con el botón «Fijar meta».
+- **Con meta:** «Meta: 5 h y 4 días por semana», dos barras de progreso («3,5 de 5 h · 70 %»; la barra nunca pasa del 100 %, el texto sí muestra el porcentaje real) y la insignia «Meta cumplida» o «En curso».
+- **Cambiar meta:** abre el formulario con los valores actuales y avisa que la meta actual quedará archivada. **Quitar meta** pide confirmación.
+- **Racha y últimas 4 semanas:** siempre visibles, también sin meta o en juegos completados o abandonados.
+- **Hitos:** hasta 5 por meta, con descripción y porcentaje objetivo; se ven como «Pendiente», «Alcanzado» o «Alcanzado el 30 oct 2026». Eliminar un hito pide confirmación.
+- En juegos **completados o abandonados** el formulario de meta aparece deshabilitado.
+- Al eliminar un videojuego también se borran su meta semanal y sus hitos; la confirmación lo avisa.
+- **Refresco del progreso:** al registrar o editar una partida desde el detalle se vuelve a él y la sección se recarga; al eliminar una partida desde el historial del detalle, el resumen y la meta semanal se actualizan sin recargar la página.
+
+**Fechas:** las fechas de partida (`AAAA-MM-DD` guardadas a medianoche UTC) se formatean en UTC con `formatearFecha` (`frontend/src/utils/formato.ts`), para que no se vean un día antes en zonas horarias negativas como Ecuador. Las fechas en que se alcanza un hito son instantes reales y se muestran en hora de Ecuador (`America/Guayaquil`).
 
 ## API REST
 
@@ -103,11 +136,25 @@ Las rutas usan el prefijo `/api`.
 | `POST` | `/api/partidas` | Registra una partida; valida que el videojuego exista. |
 | `PUT` | `/api/partidas/:id` | Actualiza una partida. |
 | `DELETE` | `/api/partidas/:id` | Elimina una partida. |
+| `GET` | `/api/videojuegos/:id/meta` | Obtiene la meta semanal activa (`{ meta }`); 404 si no hay. |
+| `PUT` | `/api/videojuegos/:id/meta` | Fija la meta con `{ "horasSemanales": 5, "diasPorSemana": 3 }`. 201 si crea una meta (la anterior queda archivada con sus hitos copiados), 200 si los valores no cambian. 400 en juegos completados o abandonados. |
+| `DELETE` | `/api/videojuegos/:id/meta` | Quita (archiva) la meta activa; 204. |
+| `POST` | `/api/videojuegos/:id/meta/hitos` | Añade un hito con `{ "descripcion": "Llegar al 50 %", "porcentajeObjetivo": 50 }` (máx. 5, porcentaje objetivo entero 1–100, mayor que el avance actual); 201 · 409 si el porcentaje objetivo ya existe. |
+| `DELETE` | `/api/videojuegos/:id/meta/hitos/:hitoId` | Elimina un hito de la meta activa; 200 con la meta. |
+| `GET` | `/api/videojuegos/:id/progreso-semanal` | Progreso de la semana actual (lunes a domingo, hora de Ecuador): horas y días jugados frente a la meta, racha actual y mejor racha, hitos con su estado `alcanzado`, avance actual y estado de las últimas 4 semanas completas. Estructura completa en la [spec §5](docs/specs/E2-backend-meta-y-progreso-semanal.md). |
+| `POST` | `/api/videojuegos/:id/metas` | Crea la meta activa con `{ "horasSemanales": 5, "diasPorSemana": 3 }`; 201 · 409 si el juego ya tiene una meta activa (no la modifica). |
+| `GET` | `/api/videojuegos/:id/metas` | Historial de metas del juego (`{ metas }`), activa y archivadas, la más reciente primero. |
+| `GET` | `/api/metas/:metaId` | Una meta por id, activa o archivada; 400 si el id no es válido, 404 si no existe. |
+| `PATCH` | `/api/metas/:metaId` | Actualiza parcialmente la meta activa (`horasSemanales` y/o `diasPorSemana`); 201 si crea una nueva y archiva la anterior, 200 si no cambia · 409 si la meta está desactivada. |
+| `PATCH` | `/api/metas/:metaId/desactivar` | Desactiva la meta sin borrarla; 200 con la meta · 409 si ya estaba desactivada. |
+
+Las rutas `/meta` son las que usa la interfaz (la meta activa del juego); las rutas `/metas` y `/api/metas/:metaId` son el CRUD del recurso Meta. Ver «Por qué conviven» en la [spec §5](docs/specs/E2-backend-meta-y-progreso-semanal.md).
 
 ### Códigos de error
 
 - **400:** errores de validación de esquema o identificadores con formato inválido.
 - **404:** recurso inexistente o videojuego referenciado que no existe.
+- **409:** conflicto con el estado actual: segunda meta activa para el mismo juego, modificar o desactivar una meta ya desactivada, hito con un porcentaje objetivo que ya existe en la meta, o violación de un índice único (p. ej. dos `PUT /meta` simultáneos).
 - **500:** error inesperado del servidor.
 
 Los errores incluyen el `requestId` de la solicitud. El middleware centralizado está en `backend/src/middlewares/errorHandler.ts`.
@@ -141,6 +188,15 @@ npm run dev
 ```
 
 La API queda disponible en `http://localhost:3000`; su comprobación de salud está en `http://localhost:3000/api/salud`.
+
+### Tests
+
+Los tests viven en `test/` (raíz del repositorio), usan `node:test` y se lanzan desde `backend/`. Incluyen las utilidades de formato del frontend (`test/frontend/formato.test.js`). No necesitan conexión a MongoDB:
+
+```powershell
+cd backend
+npm test
+```
 
 ### Frontend
 
