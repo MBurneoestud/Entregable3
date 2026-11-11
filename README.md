@@ -297,4 +297,4 @@ La decisión «una meta superada muestra el porcentaje real» recorre toda la ca
 
 ### Demo
 
-El guion está en [`docs/guion-demo.md`](docs/guion-demo.md). Enlace al video: *pendiente de grabación*.
+El guion está en [`docs/guion-demo.md`](docs/guion-demo.md). El video de la demo de E2 (`Demo-E2-metas-rachas.mp4`) se entrega como archivo .mp4 en la tarea del curso; no se versiona en el repositorio (diagnóstico #5).
