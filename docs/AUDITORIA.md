@@ -341,7 +341,7 @@ Las correcciones de diseño de `67c3fea` (E2-T19) llegan a producción cuando se
 
 También deja ver un bug: una partida registrada el 21/10/2026 aparece como «20 oct 2026» (problema #1 del diagnóstico). El video no cubre errores 400 o 404, ni eliminar un juego que tenga partidas. Es anterior a E2, así que no incluye metas ni rachas.
 
-La demo de E2 sigue el guion de [`docs/guion-demo.md`](guion-demo.md) (máximo 6 minutos, flujo de la fase 10). El enlace al video se añade al README cuando esté grabado.
+La demo de E2 sigue el guion de [`docs/guion-demo.md`](guion-demo.md) (máximo 6 minutos, flujo de la fase 10). El video está grabado y se entrega como archivo .mp4 en la tarea del curso, fuera del repositorio (diagnóstico #5).
 
 ## 9. Limitaciones conocidas de esta evidencia
 

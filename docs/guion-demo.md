@@ -24,4 +24,4 @@ Sigue la fase 10 del enunciado sobre la app desplegada:
 **Después de grabar:**
 
 - Eliminar «Demo E2» y sus partidas desde «Partidas», porque al borrar un juego sus partidas no se borran (diagnóstico #2).
-- Subir el video a YouTube o Drive (no al repositorio: diagnóstico #5) y poner el enlace en la sección «Demo» del README.
+- Entregar el video como archivo .mp4 en la tarea del curso. No se sube al repositorio (diagnóstico #5).

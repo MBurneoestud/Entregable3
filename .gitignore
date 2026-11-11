@@ -6,3 +6,6 @@ dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# Video de la demo de E2: se entrega en la tarea, no se versiona (diagnóstico #5)
+Demo-E2-metas-rachas.mp4
